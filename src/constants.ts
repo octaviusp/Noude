@@ -1,0 +1,68 @@
+import type { NodeType } from './types';
+
+export const NODE_DEFAULTS = {
+  'claude-code': {
+    label: 'Claude Code',
+    nodeType: 'claude-code' as NodeType,
+    workingDirectory: '',
+    enabled: true,
+    timeoutMs: 0,
+    prompt: '',
+    model: 'sonnet' as const,
+    outputFormat: 'json' as const,
+    allowedTools: [],
+    disallowedTools: [],
+    appendSystemPrompt: '',
+    maxBudgetUsd: 0,
+    permissionMode: 'default' as const,
+    additionalDirs: [],
+    continueSession: false,
+  },
+  codex: {
+    label: 'Codex',
+    nodeType: 'codex' as NodeType,
+    workingDirectory: '',
+    enabled: true,
+    timeoutMs: 0,
+    prompt: '',
+    model: 'o3',
+    fullAuto: true,
+    sandboxMode: 'workspace-write' as const,
+    jsonOutput: true,
+    additionalDirs: [],
+  },
+  bash: {
+    label: 'Bash',
+    nodeType: 'bash' as NodeType,
+    workingDirectory: '',
+    enabled: true,
+    timeoutMs: 0,
+    script: '',
+    shell: 'bash' as const,
+    env: {},
+  },
+};
+
+export const NODE_COLORS: Record<NodeType, string> = {
+  'claude-code': '#d97706',
+  codex: '#10b981',
+  bash: '#6366f1',
+};
+
+export const STATUS_COLORS = {
+  idle: '#6b7280',
+  queued: '#f59e0b',
+  running: '#3b82f6',
+  streaming: '#8b5cf6',
+  success: '#10b981',
+  error: '#ef4444',
+  cancelled: '#9ca3af',
+  skipped: '#9ca3af',
+};
+
+export const FLOW_DEFAULTS = {
+  workingDirectory: '',
+  maxConcurrency: 3,
+  stopOnError: true,
+  globalIterationLimit: 10,
+};
