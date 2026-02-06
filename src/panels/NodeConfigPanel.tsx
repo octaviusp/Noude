@@ -1,7 +1,6 @@
 import { useFlowStore } from '../store/flowStore';
 import type { AnyNodeData } from '../types';
 import { ClaudeCodeConfig } from './ClaudeCodeConfig';
-import { CodexConfig } from './CodexConfig';
 import { BashConfig } from './BashConfig';
 
 export function NodeConfigPanel() {
@@ -37,9 +36,6 @@ export function NodeConfigPanel() {
 
         {data.nodeType === 'claude-code' && (
           <ClaudeCodeConfig data={data} onChange={onChange} />
-        )}
-        {data.nodeType === 'codex' && (
-          <CodexConfig data={data} onChange={onChange} />
         )}
         {data.nodeType === 'bash' && (
           <BashConfig data={data} onChange={onChange} />

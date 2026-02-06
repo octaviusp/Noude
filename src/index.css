@@ -10,7 +10,6 @@
   --border: #334155;
   --border-light: #475569;
   --accent-claude: #d97706;
-  --accent-codex: #10b981;
   --accent-bash: #6366f1;
   --status-idle: #6b7280;
   --status-queued: #f59e0b;
@@ -312,7 +311,7 @@ body {
 }
 
 .noude-config-panel .toggle.active {
-  background: var(--accent-codex);
+  background: var(--status-success);
 }
 
 .noude-config-panel .toggle::after {

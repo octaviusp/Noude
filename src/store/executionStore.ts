@@ -7,7 +7,6 @@ import type {
   ExecutionPlan,
   AnyNodeData,
   ClaudeCodeNodeData,
-  CodexNodeData,
   BashNodeData,
   MergedInput,
 } from '../types';
@@ -17,13 +16,12 @@ import { checkConvergence, getOutputHashes, shouldContinueCycle } from '../engin
 import { Semaphore } from '../engine/scheduler';
 import {
   invokeClaude,
-  invokeCodex,
   invokeBash,
   cancelProcess,
   cancelAllProcesses,
   type ProcessEvent,
 } from '../lib/tauri';
-import { buildClaudePrompt, buildClaudeSystemPrompt, buildCodexPrompt, buildBashScript } from '../lib/prompt';
+import { buildClaudePrompt, buildClaudeSystemPrompt, buildBashScript } from '../lib/prompt';
 import { useFlowStore } from './flowStore';
 
 interface ExecutionState {
@@ -373,9 +371,6 @@ async function executeNode(
       case 'claude-code':
         await executeClaudeNode(data, mergedInput, workingDir, onEvent);
         break;
-      case 'codex':
-        await executeCodexNode(data, mergedInput, workingDir, onEvent);
-        break;
       case 'bash':
         await executeBashNode(data, mergedInput, workingDir, onEvent);
         break;
@@ -397,7 +392,7 @@ async function executeNode(
       },
       meta: {
         durationMs,
-        model: 'model' in data ? (data as ClaudeCodeNodeData | CodexNodeData).model : undefined,
+        model: 'model' in data ? (data as ClaudeCodeNodeData).model : undefined,
       },
       error: result.exitCode !== 0 && result.exitCode !== null
         ? {
@@ -464,27 +459,6 @@ async function executeClaudeNode(
     additionalDirs: data.additionalDirs.length > 0 ? data.additionalDirs : undefined,
     continueSession: data.continueSession || undefined,
     jsonSchema: data.jsonSchema,
-    timeoutMs: data.timeoutMs > 0 ? data.timeoutMs : undefined,
-  }, onEvent);
-}
-
-async function executeCodexNode(
-  data: CodexNodeData,
-  input: MergedInput,
-  workingDir: string | undefined,
-  onEvent: (event: ProcessEvent) => void,
-): Promise<string> {
-  const prompt = buildCodexPrompt(data.prompt, input);
-
-  return invokeCodex({
-    prompt,
-    model: data.model,
-    fullAuto: data.fullAuto,
-    sandboxMode: data.sandboxMode,
-    jsonOutput: data.jsonOutput,
-    workingDirectory: workingDir,
-    additionalDirs: data.additionalDirs.length > 0 ? data.additionalDirs : undefined,
-    outputLastMessage: data.outputLastMessage,
     timeoutMs: data.timeoutMs > 0 ? data.timeoutMs : undefined,
   }, onEvent);
 }

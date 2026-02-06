@@ -40,10 +40,6 @@
   background: var(--accent-claude);
 }
 
-.noude-node.type-codex .noude-node-header::before {
-  background: var(--accent-codex);
-}
-
 .noude-node.type-bash .noude-node-header::before {
   background: var(--accent-bash);
 }
@@ -62,11 +58,6 @@
 .noude-node.type-claude-code .noude-node-icon {
   background: rgba(217, 119, 6, 0.15);
   color: var(--accent-claude);
-}
-
-.noude-node.type-codex .noude-node-icon {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--accent-codex);
 }
 
 .noude-node.type-bash .noude-node-icon {
@@ -152,19 +143,9 @@
   background: rgba(217, 119, 6, 0.1);
 }
 
-.noude-node-badge.codex-model {
-  color: var(--accent-codex);
-  background: rgba(16, 185, 129, 0.1);
-}
-
 .noude-node-badge.shell {
   color: var(--accent-bash);
   background: rgba(99, 102, 241, 0.1);
-}
-
-.noude-node-badge.full-auto {
-  color: var(--accent-codex);
-  background: rgba(16, 185, 129, 0.1);
 }
 
 .noude-node-duration {

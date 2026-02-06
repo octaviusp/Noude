@@ -20,16 +20,6 @@ export function buildClaudePrompt(userPrompt: string, input: MergedInput): strin
   return `## Context from upstream nodes\n${input.combinedText}\n\n---\n\n${userPrompt}`;
 }
 
-export function buildCodexPrompt(userPrompt: string, input: MergedInput): string {
-  if (!input.sources.length) return userPrompt;
-
-  if (userPrompt.includes('{{input}}')) {
-    return userPrompt.replace(/\{\{input\}\}/g, input.combinedText);
-  }
-
-  return `## Context from upstream nodes\n${input.combinedText}\n---\n## Task\n${userPrompt}\n\nInstructions: Complete concisely. No preamble. Output structured results.`;
-}
-
 export function buildBashScript(
   script: string,
   input: MergedInput

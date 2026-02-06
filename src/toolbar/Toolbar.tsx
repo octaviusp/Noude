@@ -7,7 +7,6 @@ import type { NodeType } from '../types';
 
 const nodeOptions: { type: NodeType; label: string; color: string }[] = [
   { type: 'claude-code', label: 'Claude Code', color: '#d97706' },
-  { type: 'codex', label: 'Codex', color: '#10b981' },
   { type: 'bash', label: 'Bash', color: '#6366f1' },
 ];
 

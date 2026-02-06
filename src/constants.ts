@@ -18,19 +18,6 @@ export const NODE_DEFAULTS = {
     additionalDirs: [],
     continueSession: false,
   },
-  codex: {
-    label: 'Codex',
-    nodeType: 'codex' as NodeType,
-    workingDirectory: '',
-    enabled: true,
-    timeoutMs: 0,
-    prompt: '',
-    model: 'o3',
-    fullAuto: true,
-    sandboxMode: 'workspace-write' as const,
-    jsonOutput: true,
-    additionalDirs: [],
-  },
   bash: {
     label: 'Bash',
     nodeType: 'bash' as NodeType,
@@ -45,7 +32,6 @@ export const NODE_DEFAULTS = {
 
 export const NODE_COLORS: Record<NodeType, string> = {
   'claude-code': '#d97706',
-  codex: '#10b981',
   bash: '#6366f1',
 };
 

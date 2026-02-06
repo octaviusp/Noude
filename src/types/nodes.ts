@@ -1,4 +1,4 @@
-export type NodeType = 'claude-code' | 'codex' | 'bash';
+export type NodeType = 'claude-code' | 'bash';
 export type NodeStatus = 'idle' | 'queued' | 'running' | 'streaming' | 'success' | 'error' | 'cancelled' | 'skipped';
 
 export interface BaseNodeData {
@@ -25,17 +25,6 @@ export interface ClaudeCodeNodeData extends BaseNodeData {
   jsonSchema?: string;
 }
 
-export interface CodexNodeData extends BaseNodeData {
-  nodeType: 'codex';
-  prompt: string;
-  model: string;
-  fullAuto: boolean;
-  sandboxMode: 'read-only' | 'workspace-write' | 'danger-full-access';
-  jsonOutput: boolean;
-  outputLastMessage?: string;
-  additionalDirs: string[];
-}
-
 export interface BashNodeData extends BaseNodeData {
   nodeType: 'bash';
   script: string;
@@ -43,4 +32,4 @@ export interface BashNodeData extends BaseNodeData {
   env: Record<string, string>;
 }
 
-export type AnyNodeData = ClaudeCodeNodeData | CodexNodeData | BashNodeData;
+export type AnyNodeData = ClaudeCodeNodeData | BashNodeData;

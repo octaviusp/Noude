@@ -27,18 +27,6 @@ export interface ClaudeInvokeArgs {
   timeoutMs?: number;
 }
 
-export interface CodexInvokeArgs {
-  prompt: string;
-  model?: string;
-  fullAuto?: boolean;
-  sandboxMode?: string;
-  jsonOutput?: boolean;
-  workingDirectory?: string;
-  additionalDirs?: string[];
-  outputLastMessage?: string;
-  timeoutMs?: number;
-}
-
 export interface BashInvokeArgs {
   script: string;
   shell?: string;
@@ -59,14 +47,6 @@ export async function invokeClaude(
 ): Promise<string> {
   const channel = createChannel(onEvent);
   return invoke<string>('invoke_claude', { args, onEvent: channel });
-}
-
-export async function invokeCodex(
-  args: CodexInvokeArgs,
-  onEvent: (event: ProcessEvent) => void
-): Promise<string> {
-  const channel = createChannel(onEvent);
-  return invoke<string>('invoke_codex', { args, onEvent: channel });
 }
 
 export async function invokeBash(

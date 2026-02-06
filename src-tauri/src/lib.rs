@@ -16,7 +16,6 @@ pub fn run() {
         .manage(pm)
         .invoke_handler(tauri::generate_handler![
             commands::claude::invoke_claude,
-            commands::codex::invoke_codex,
             commands::bash::invoke_bash,
             commands::process::cancel_process,
             commands::process::cancel_all_processes,
