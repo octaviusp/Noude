@@ -1,14 +1,24 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useExecutionStore } from '../store/executionStore';
 import { useFlowStore } from '../store/flowStore';
+import { Badge } from '../components/ui/badge';
+
+const statusBadgeVariant: Record<string, 'default' | 'amber' | 'indigo' | 'green' | 'red' | 'purple' | 'slate'> = {
+  idle: 'slate',
+  running: 'indigo',
+  success: 'green',
+  error: 'red',
+  cancelled: 'slate',
+};
 
 export function OutputPanel() {
+  const [collapsed, setCollapsed] = useState(false);
   const selectedNodeId = useFlowStore(s => s.selectedNodeId);
   const flowStatus = useExecutionStore(s => s.flowStatus);
   const nodeStatuses = useExecutionStore(s => s.nodeStatuses);
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  // Find the node to display: selected, or first running/streaming node
   let displayNodeId = selectedNodeId;
   if (!displayNodeId) {
     for (const [id, status] of nodeStatuses) {
@@ -31,33 +41,62 @@ export function OutputPanel() {
   }, [streaming, logs]);
 
   return (
-    <div className="noude-output-panel">
-      <div className="output-header">
-        <span>
-          OUTPUT
-          {label && ` — ${label}`}
-          {flowStatus !== 'idle' && ` [${flowStatus}]`}
+    <div
+      className="bg-slate-900 border-t border-slate-700/50 flex flex-col shrink-0 transition-[height] duration-200"
+      style={{ height: collapsed ? 36 : 200 }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center gap-2 px-4 h-9 border-b border-slate-800/50 shrink-0 cursor-pointer select-none"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          Output
         </span>
-      </div>
-      <div className="output-body" ref={bodyRef}>
-        {streaming ? (
-          <span className="stdout">{streaming}</span>
-        ) : output?.result.text ? (
-          <span className="stdout">{output.result.text}</span>
-        ) : logs.length > 0 ? (
-          <span className="stdout">{logs.join('\n')}</span>
-        ) : (
-          <span style={{ color: 'var(--text-muted)' }}>
-            {flowStatus === 'idle' ? 'Run a flow to see output here...' : 'Waiting for output...'}
+        {label && (
+          <span className="text-[11px] text-slate-500">
+            {label}
           </span>
         )}
-        {output?.error && (
-          <span className="stderr">
-            {'\n'}Error: {output.error.message}
-            {output.error.stderr && `\n${output.error.stderr}`}
-          </span>
+        {flowStatus !== 'idle' && (
+          <Badge variant={statusBadgeVariant[flowStatus] || 'slate'}>
+            {flowStatus}
+          </Badge>
         )}
+        <div className="ml-auto">
+          {collapsed ? (
+            <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+          )}
+        </div>
       </div>
+
+      {/* Body */}
+      {!collapsed && (
+        <div
+          ref={bodyRef}
+          className="flex-1 overflow-y-auto px-4 py-3 font-mono text-xs leading-relaxed text-slate-400 whitespace-pre-wrap break-words"
+        >
+          {streaming ? (
+            <span className="text-slate-200">{streaming}</span>
+          ) : output?.result.text ? (
+            <span className="text-slate-200">{output.result.text}</span>
+          ) : logs.length > 0 ? (
+            <span className="text-slate-200">{logs.join('\n')}</span>
+          ) : (
+            <span className="text-slate-600">
+              {flowStatus === 'idle' ? 'Run a flow to see output here...' : 'Waiting for output...'}
+            </span>
+          )}
+          {output?.error && (
+            <span className="text-red-400">
+              {'\n'}Error: {output.error.message}
+              {output.error.stderr && `\n${output.error.stderr}`}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

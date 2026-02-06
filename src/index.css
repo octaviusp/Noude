@@ -37,139 +37,21 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: #e2e8f0;
+}
+
+/* App layout */
 .noude-app {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-}
-
-.noude-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  min-height: 48px;
-  flex-shrink: 0;
-}
-
-.noude-toolbar button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.noude-toolbar button:hover {
-  background: var(--border);
-  border-color: var(--border-light);
-}
-
-.noude-toolbar button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.noude-toolbar .btn-run {
-  background: #065f46;
-  border-color: #059669;
-  color: #d1fae5;
-}
-
-.noude-toolbar .btn-run:hover {
-  background: #047857;
-}
-
-.noude-toolbar .btn-stop {
-  background: #7f1d1d;
-  border-color: #dc2626;
-  color: #fecaca;
-}
-
-.noude-toolbar .btn-stop:hover {
-  background: #991b1b;
-}
-
-.noude-toolbar .separator {
-  width: 1px;
-  height: 24px;
-  background: var(--border);
-  margin: 0 4px;
-}
-
-.noude-toolbar .flow-name {
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 4px;
-  margin-left: auto;
-}
-
-.noude-toolbar .flow-name:hover {
-  border-color: var(--border);
-}
-
-.noude-toolbar .flow-name:focus {
-  outline: none;
-  border-color: var(--accent-claude);
-}
-
-.noude-toolbar .dropdown {
-  position: relative;
-}
-
-.noude-toolbar .dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 4px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 4px;
-  min-width: 180px;
-  z-index: 50;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-.noude-toolbar .dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 13px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.noude-toolbar .dropdown-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.noude-toolbar .dropdown-item .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
 }
 
 .noude-main {
@@ -199,12 +81,14 @@ body {
   border: 1px solid var(--border) !important;
   border-radius: 8px !important;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .noude-canvas .react-flow__controls-button {
   background: var(--bg-secondary) !important;
   border-bottom: 1px solid var(--border) !important;
   fill: var(--text-secondary) !important;
+  transition: background 0.15s ease !important;
 }
 
 .noude-canvas .react-flow__controls-button:hover {
@@ -219,157 +103,6 @@ body {
 .noude-canvas .react-flow__connection-line {
   stroke: var(--text-muted) !important;
   stroke-width: 2 !important;
-}
-
-/* Config Panel */
-.noude-config-panel {
-  width: 360px;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border);
-  overflow-y: auto;
-  flex-shrink: 0;
-}
-
-.noude-config-panel .panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.noude-config-panel .panel-header h3 {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.noude-config-panel .panel-close {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 18px;
-  padding: 4px;
-}
-
-.noude-config-panel .panel-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.noude-config-panel label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.noude-config-panel input,
-.noude-config-panel select,
-.noude-config-panel textarea {
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-primary);
-  padding: 8px 10px;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.noude-config-panel input:focus,
-.noude-config-panel select:focus,
-.noude-config-panel textarea:focus {
-  border-color: var(--accent-claude);
-}
-
-.noude-config-panel textarea {
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  min-height: 120px;
-  resize: vertical;
-}
-
-.noude-config-panel .toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.noude-config-panel .toggle {
-  position: relative;
-  width: 36px;
-  height: 20px;
-  background: var(--bg-tertiary);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border: none;
-}
-
-.noude-config-panel .toggle.active {
-  background: var(--status-success);
-}
-
-.noude-config-panel .toggle::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.noude-config-panel .toggle.active::after {
-  transform: translateX(16px);
-}
-
-/* Output Panel */
-.noude-output-panel {
-  height: 200px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-
-.noude-output-panel .output-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: 600;
-  cursor: ns-resize;
-}
-
-.noude-output-panel .output-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 16px;
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.noude-output-panel .output-body .stdout {
-  color: var(--text-primary);
-}
-
-.noude-output-panel .output-body .stderr {
-  color: var(--status-error);
 }
 
 /* Scrollbar */

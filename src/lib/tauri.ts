@@ -1,4 +1,5 @@
 import { invoke, Channel } from '@tauri-apps/api/core';
+import { open } from '@tauri-apps/plugin-dialog';
 
 export interface ProcessEvent {
   type: 'started' | 'stdout' | 'stderr' | 'completed' | 'error' | 'cancelled';
@@ -63,4 +64,9 @@ export async function cancelProcess(processId: string): Promise<boolean> {
 
 export async function cancelAllProcesses(): Promise<void> {
   return invoke<void>('cancel_all_processes');
+}
+
+export async function pickFolder(): Promise<string | null> {
+  const result = await open({ directory: true, multiple: false });
+  return typeof result === 'string' ? result : null;
 }
