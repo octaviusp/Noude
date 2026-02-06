@@ -379,6 +379,8 @@ async function executeNode(
     const result = await completionPromise;
     const durationMs = Date.now() - startTime;
 
+    const parsed = parseClaudeOutput(data.nodeType, result.stdout, data.nodeType === 'claude-code' ? (data as ClaudeCodeNodeData).outputFormat : undefined);
+
     const nodeOutput: NodeOutput = {
       nodeId,
       nodeType: data.nodeType,
@@ -386,13 +388,14 @@ async function executeNode(
       timestamp: Date.now(),
       status: result.exitCode === 0 || result.exitCode === null ? 'success' : 'error',
       result: {
-        text: result.stdout,
+        text: parsed.text,
         exitCode: result.exitCode ?? undefined,
-        data: tryParseJson(result.stdout),
+        data: tryParseJson(parsed.text),
       },
       meta: {
         durationMs,
         model: 'model' in data ? (data as ClaudeCodeNodeData).model : undefined,
+        ...parsed.meta,
       },
       error: result.exitCode !== 0 && result.exitCode !== null
         ? {
@@ -497,4 +500,67 @@ function tryParseJson(text: string): Record<string, unknown> | undefined {
     // Not JSON
   }
   return undefined;
+}
+
+interface ParsedClaudeOutput {
+  text: string;
+  meta: {
+    costUsd?: number;
+    numTurns?: number;
+    sessionId?: string;
+    tokenUsage?: { input: number; output: number };
+  };
+}
+
+function parseClaudeOutput(
+  nodeType: string,
+  stdout: string,
+  outputFormat?: string,
+): ParsedClaudeOutput {
+  if (nodeType !== 'claude-code') {
+    return { text: stdout, meta: {} };
+  }
+
+  const extractMeta = (obj: Record<string, unknown>): ParsedClaudeOutput => {
+    const result = typeof obj.result === 'string' ? obj.result : stdout;
+    const usage = obj.usage as Record<string, number> | undefined;
+    return {
+      text: result,
+      meta: {
+        costUsd: typeof obj.total_cost_usd === 'number' ? obj.total_cost_usd : undefined,
+        numTurns: typeof obj.num_turns === 'number' ? obj.num_turns : undefined,
+        sessionId: typeof obj.session_id === 'string' ? obj.session_id : undefined,
+        tokenUsage: usage && typeof usage.input_tokens === 'number' && typeof usage.output_tokens === 'number'
+          ? { input: usage.input_tokens, output: usage.output_tokens }
+          : undefined,
+      },
+    };
+  };
+
+  if (outputFormat === 'json') {
+    try {
+      const parsed = JSON.parse(stdout.trim());
+      if (parsed && typeof parsed === 'object' && parsed.type === 'result') {
+        return extractMeta(parsed as Record<string, unknown>);
+      }
+    } catch {
+      // Not valid JSON, return raw
+    }
+  }
+
+  if (outputFormat === 'stream-json') {
+    const lines = stdout.trim().split('\n');
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        const parsed = JSON.parse(lines[i]);
+        if (parsed && typeof parsed === 'object' && parsed.type === 'result') {
+          return extractMeta(parsed as Record<string, unknown>);
+        }
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  return { text: stdout, meta: {} };
 }

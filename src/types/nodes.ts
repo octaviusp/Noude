@@ -19,7 +19,7 @@ export interface ClaudeCodeNodeData extends BaseNodeData {
   disallowedTools: string[];
   appendSystemPrompt: string;
   maxBudgetUsd: number;
-  permissionMode: 'default' | 'plan' | 'bypassPermissions';
+  permissionMode: 'bypassPermissions' | 'dontAsk' | 'acceptEdits' | 'plan' | 'default' | 'delegate';
   additionalDirs: string[];
   continueSession: boolean;
   jsonSchema?: string;

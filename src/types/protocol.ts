@@ -15,6 +15,7 @@ export interface NodeOutput {
     durationMs: number;
     model?: string;
     costUsd?: number;
+    numTurns?: number;
     tokenUsage?: { input: number; output: number };
     sessionId?: string;
     iteration?: number;

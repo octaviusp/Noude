@@ -14,7 +14,7 @@ export const NODE_DEFAULTS = {
     disallowedTools: [],
     appendSystemPrompt: '',
     maxBudgetUsd: 0,
-    permissionMode: 'default' as const,
+    permissionMode: 'bypassPermissions' as const,
     additionalDirs: [],
     continueSession: false,
   },

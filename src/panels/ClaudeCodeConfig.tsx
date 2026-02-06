@@ -50,9 +50,12 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
       <div className="flex flex-col gap-1.5">
         <FieldLabel>Permission Mode</FieldLabel>
         <Select value={data.permissionMode} onChange={e => onChange({ permissionMode: e.target.value as ClaudeCodeNodeData['permissionMode'] })}>
-          <option value="default">Default</option>
+          <option value="bypassPermissions">Bypass Permissions (recommended)</option>
+          <option value="dontAsk">Don't Ask</option>
+          <option value="acceptEdits">Accept Edits</option>
           <option value="plan">Plan</option>
-          <option value="bypassPermissions">Bypass Permissions</option>
+          <option value="default">Default</option>
+          <option value="delegate">Delegate</option>
         </Select>
       </div>
 

@@ -68,7 +68,11 @@ pub async fn invoke_claude(
     }
 
     if let Some(ref mode) = args.permission_mode {
-        cmd_args.extend(["--permission-mode".into(), mode.clone()]);
+        if mode == "bypassPermissions" {
+            cmd_args.push("--dangerously-skip-permissions".into());
+        } else if mode != "default" {
+            cmd_args.extend(["--permission-mode".into(), mode.clone()]);
+        }
     }
 
     if let Some(ref dirs) = args.additional_dirs {

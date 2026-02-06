@@ -2,6 +2,7 @@ import type { MergedInput } from '../types';
 
 export function buildClaudeSystemPrompt(label: string): string {
   return `You are a node named "${label}" in an automated pipeline (Noude.ai).
+You are running in non-interactive mode. All tool uses will be automatically approved.
 Rules:
 - Output CLEAR, STRUCTURED text. Use markdown headers.
 - Be CONCISE. No preamble, no apologies, no meta-commentary.

@@ -63,6 +63,13 @@ export function OutputPanel() {
             {flowStatus}
           </Badge>
         )}
+        {output?.meta && (
+          <span className="text-[10px] text-slate-500 font-mono">
+            {output.meta.numTurns != null && `${output.meta.numTurns} turns`}
+            {output.meta.costUsd != null && ` · $${output.meta.costUsd.toFixed(3)}`}
+            {output.meta.durationMs != null && ` · ${(output.meta.durationMs / 1000).toFixed(1)}s`}
+          </span>
+        )}
         <div className="ml-auto">
           {collapsed ? (
             <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
@@ -88,6 +95,16 @@ export function OutputPanel() {
             <span className="text-slate-600">
               {flowStatus === 'idle' ? 'Run a flow to see output here...' : 'Waiting for output...'}
             </span>
+          )}
+          {output?.meta && (output.meta.costUsd != null || output.meta.numTurns != null || output.meta.tokenUsage || output.meta.sessionId) && (
+            <div className="mt-3 pt-2 border-t border-slate-800/50 text-[10px] text-slate-500 font-mono flex flex-wrap gap-x-4 gap-y-1">
+              {output.meta.model && <span>Model: {output.meta.model}</span>}
+              {output.meta.numTurns != null && <span>Turns: {output.meta.numTurns}</span>}
+              {output.meta.costUsd != null && <span>Cost: ${output.meta.costUsd.toFixed(4)}</span>}
+              {output.meta.tokenUsage && <span>Tokens: {output.meta.tokenUsage.input.toLocaleString()} in / {output.meta.tokenUsage.output.toLocaleString()} out</span>}
+              {output.meta.durationMs != null && <span>Duration: {(output.meta.durationMs / 1000).toFixed(1)}s</span>}
+              {output.meta.sessionId && <span>Session: {output.meta.sessionId.slice(0, 8)}</span>}
+            </div>
           )}
           {output?.error && (
             <span className="text-red-400">
