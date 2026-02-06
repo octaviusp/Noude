@@ -3,6 +3,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useExecutionStore } from '../store/executionStore';
 import { useFlowStore } from '../store/flowStore';
 import { Badge } from '../components/ui/badge';
+import type { ToolActivity } from '../types';
+
+const EMPTY_TOOLS: ToolActivity[] = [];
 
 const statusBadgeVariant: Record<string, 'default' | 'amber' | 'indigo' | 'green' | 'red' | 'purple' | 'slate'> = {
   idle: 'slate',
@@ -31,7 +34,7 @@ export function OutputPanel() {
 
   const streaming = useExecutionStore(s => displayNodeId ? s.getNodeStreaming(displayNodeId) : '');
   const output = useExecutionStore(s => displayNodeId ? s.getNodeOutput(displayNodeId) : undefined);
-  const toolActivity = useExecutionStore(s => displayNodeId ? s.nodeToolActivity.get(displayNodeId) ?? [] : []);
+  const toolActivity = useExecutionStore(s => displayNodeId ? s.nodeToolActivity.get(displayNodeId) ?? EMPTY_TOOLS : EMPTY_TOOLS);
   const liveMetrics = useExecutionStore(s => displayNodeId ? s.nodeLiveMetrics.get(displayNodeId) : undefined);
   const label = displayNodeId ? useFlowStore.getState().getNodeLabel(displayNodeId) : null;
   const logs = useExecutionStore(s => s.logs);
