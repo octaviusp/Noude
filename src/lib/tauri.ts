@@ -20,6 +20,7 @@ export interface ClaudeInvokeArgs {
   disallowedTools?: string[];
   appendSystemPrompt?: string;
   maxBudgetUsd?: number;
+  maxTurns?: number;
   permissionMode?: string;
   workingDirectory?: string;
   additionalDirs?: string[];

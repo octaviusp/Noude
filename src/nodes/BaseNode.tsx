@@ -16,10 +16,11 @@ export function BaseNode({ id, data, selected, icon, children }: BaseNodeProps) 
   const status = useExecutionStore(s => s.getNodeStatus(id));
   const output = useExecutionStore(s => s.getNodeOutput(id));
   const selectNode = useFlowStore(s => s.selectNode);
+  const isActive = status === 'running' || status === 'streaming';
 
   return (
     <div
-      className={`noude-node type-${data.nodeType} ${selected ? 'selected' : ''}`}
+      className={`noude-node type-${data.nodeType} ${selected ? 'selected' : ''} ${isActive ? 'executing' : ''}`}
       onClick={() => selectNode(id)}
     >
       <Handle type="target" position={Position.Left} id="in" className="noude-handle" />

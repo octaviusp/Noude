@@ -18,6 +18,9 @@
   --status-success: #10b981;
   --status-error: #ef4444;
   --status-cancelled: #9ca3af;
+  --accent-sub-agent: #38bdf8;
+  --accent-autonomous: #10b981;
+  --accent-tool-active: #a78bfa;
 }
 
 * {

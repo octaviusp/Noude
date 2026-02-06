@@ -2,6 +2,7 @@ import type { NodeProps } from '@xyflow/react';
 import type { AnyNodeData } from '../types';
 import { ClaudeCodeNode } from './ClaudeCodeNode';
 import { BashNode } from './BashNode';
+import { SubAgentNode } from './SubAgentNode';
 
 function NoudeNode(props: NodeProps) {
   const data = props.data as AnyNodeData;
@@ -15,7 +16,6 @@ function NoudeNode(props: NodeProps) {
 }
 
 export const nodeTypes = {
-  'noude': NoudeNode,
-  'claude-code': ClaudeCodeNode,
-  bash: BashNode,
+  noude: NoudeNode,
+  'sub-agent': SubAgentNode,
 };

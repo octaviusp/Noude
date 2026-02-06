@@ -32,9 +32,9 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
       <div className="flex flex-col gap-1.5">
         <FieldLabel>Model</FieldLabel>
         <Select value={data.model} onChange={e => onChange({ model: e.target.value as ClaudeCodeNodeData['model'] })}>
-          <option value="sonnet">Sonnet</option>
-          <option value="opus">Opus</option>
-          <option value="haiku">Haiku</option>
+          <option value="sonnet">Sonnet 4.5</option>
+          <option value="opus">Opus 4.6</option>
+          <option value="haiku">Haiku 4.5</option>
         </Select>
       </div>
 
@@ -86,6 +86,16 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
           onChange={e => onChange({ maxBudgetUsd: parseFloat(e.target.value) || 0 })}
           min={0}
           step={0.1}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <FieldLabel>Max Turns (0 = unlimited)</FieldLabel>
+        <Input
+          type="number"
+          value={data.maxTurns}
+          onChange={e => onChange({ maxTurns: parseInt(e.target.value) || 0 })}
+          min={0}
         />
       </div>
 

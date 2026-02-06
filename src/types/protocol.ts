@@ -33,3 +33,25 @@ export interface MergedInput {
   combinedData: Record<string, unknown>;
   hasErrors: boolean;
 }
+
+export interface SubAgent {
+  id: string;
+  parentNodeId: string;
+  name: string;
+  description: string;
+  status: 'spawning' | 'running' | 'completed' | 'error';
+  spawnedAt: number;
+  flowNodeId?: string;
+}
+
+export interface ToolActivity {
+  toolUseId: string;
+  toolName: string;
+  status: 'running' | 'completed' | 'error';
+  startedAt: number;
+}
+
+export interface LiveMetrics {
+  turns: number;
+  activeTools: string[];
+}

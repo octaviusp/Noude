@@ -22,6 +22,7 @@ pub struct ClaudeInvokeArgs {
     pub working_directory: Option<String>,
     pub additional_dirs: Option<Vec<String>>,
     pub continue_session: Option<bool>,
+    pub max_turns: Option<u32>,
     pub json_schema: Option<String>,
     pub timeout_ms: Option<u64>,
 }
@@ -83,6 +84,12 @@ pub async fn invoke_claude(
 
     if args.continue_session.unwrap_or(false) {
         cmd_args.push("--continue".into());
+    }
+
+    if let Some(turns) = args.max_turns {
+        if turns > 0 {
+            cmd_args.extend(["--max-turns".into(), turns.to_string()]);
+        }
     }
 
     if let Some(ref schema) = args.json_schema {

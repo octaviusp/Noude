@@ -62,6 +62,11 @@ interface FlowState {
   exportToJson: () => FlowDefinition;
   importFromJson: (json: string) => void;
 
+  // Sub-agent management
+  addSubAgentNode: (parentNodeId: string, agent: { id: string; name: string; description: string; status: string }) => string | null;
+  removeSubAgentNodes: (parentNodeId: string) => void;
+  updateSubAgentStatus: (nodeId: string, status: string) => void;
+
   // Helpers
   getNode: (id: string) => Node<AnyNodeData> | undefined;
   getNodeLabel: (id: string) => string;
@@ -205,6 +210,64 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       flowId: flow.id,
       defaults: flow.defaults,
       selectedNodeId: null,
+    });
+  },
+
+  addSubAgentNode: (parentNodeId, agent) => {
+    const parent = get().nodes.find(n => n.id === parentNodeId);
+    if (!parent) return null;
+    const siblings = get().nodes.filter(
+      n => n.type === 'sub-agent' && (n.data as Record<string, unknown>).parentNodeId === parentNodeId
+    );
+    const x = parent.position.x - 40 + siblings.length * 90;
+    const y = parent.position.y + 130;
+    const nodeId = `sub-${agent.id}`;
+    const node: Node = {
+      id: nodeId,
+      type: 'sub-agent',
+      position: { x, y },
+      draggable: false,
+      selectable: false,
+      connectable: false,
+      data: {
+        label: agent.name,
+        description: agent.description,
+        status: agent.status,
+        parentNodeId,
+        nodeType: 'sub-agent',
+      },
+    };
+    const edge: Edge = {
+      id: `edge-${nodeId}`,
+      source: parentNodeId,
+      sourceHandle: 'out',
+      target: nodeId,
+      type: 'noude',
+    };
+    set({
+      nodes: [...get().nodes, node] as Node<AnyNodeData>[],
+      edges: [...get().edges, edge] as Edge<NoudeEdgeData>[],
+    });
+    return nodeId;
+  },
+
+  removeSubAgentNodes: (parentNodeId) => {
+    const subIds = new Set(
+      get().nodes
+        .filter(n => n.type === 'sub-agent' && (n.data as Record<string, unknown>).parentNodeId === parentNodeId)
+        .map(n => n.id)
+    );
+    set({
+      nodes: get().nodes.filter(n => !subIds.has(n.id)) as Node<AnyNodeData>[],
+      edges: get().edges.filter(e => !subIds.has(e.target) && !subIds.has(e.source)) as Edge<NoudeEdgeData>[],
+    });
+  },
+
+  updateSubAgentStatus: (nodeId, status) => {
+    set({
+      nodes: get().nodes.map(n =>
+        n.id === nodeId ? { ...n, data: { ...n.data, status } } : n
+      ) as Node<AnyNodeData>[],
     });
   },
 

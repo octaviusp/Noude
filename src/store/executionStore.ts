@@ -9,6 +9,9 @@ import type {
   ClaudeCodeNodeData,
   BashNodeData,
   MergedInput,
+  SubAgent,
+  ToolActivity,
+  LiveMetrics,
 } from '../types';
 import { buildExecutionPlan } from '../engine/dag';
 import { mergeInputs } from '../engine/inputMerger';
@@ -32,6 +35,11 @@ interface ExecutionState {
   nodeStreaming: Map<string, string>;
   executionPlan: ExecutionPlan | null;
   activeProcessIds: Map<string, string>; // nodeId -> processId
+
+  // Live tracking
+  subAgents: Map<string, SubAgent>;
+  nodeToolActivity: Map<string, ToolActivity[]>;
+  nodeLiveMetrics: Map<string, LiveMetrics>;
 
   // Timing
   startedAt: number | null;
@@ -76,6 +84,9 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   nodeStreaming: new Map(),
   executionPlan: null,
   activeProcessIds: new Map(),
+  subAgents: new Map(),
+  nodeToolActivity: new Map(),
+  nodeLiveMetrics: new Map(),
   startedAt: null,
   finishedAt: null,
   logs: [],
@@ -95,6 +106,9 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       nodeOutputs: new Map(),
       nodeStreaming: new Map(),
       activeProcessIds: new Map(),
+      subAgents: new Map(),
+      nodeToolActivity: new Map(),
+      nodeLiveMetrics: new Map(),
       startedAt: Date.now(),
       finishedAt: null,
       logs: [],
@@ -215,6 +229,9 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       nodeStreaming: new Map(),
       executionPlan: null,
       activeProcessIds: new Map(),
+      subAgents: new Map(),
+      nodeToolActivity: new Map(),
+      nodeLiveMetrics: new Map(),
       startedAt: null,
       finishedAt: null,
       logs: [],
@@ -324,6 +341,10 @@ async function executeNode(
           next.set(nodeId, buf);
           return { nodeStreaming: next };
         });
+        // Parse stream-json events for live tracking
+        if (data.nodeType === 'claude-code' && (data as ClaudeCodeNodeData).outputFormat === 'stream-json') {
+          parseStreamLine(nodeId, event.chunk ?? '', set);
+        }
         break;
       case 'stderr':
         set((s) => {
@@ -412,6 +433,20 @@ async function executeNode(
       return { nodeOutputs: next };
     });
 
+    // Cleanup sub-agents and live tracking for this node
+    useFlowStore.getState().removeSubAgentNodes(nodeId);
+    set((s) => {
+      const nextAgents = new Map(s.subAgents);
+      for (const [key, agent] of nextAgents) {
+        if (agent.parentNodeId === nodeId) nextAgents.delete(key);
+      }
+      const nextActivity = new Map(s.nodeToolActivity);
+      nextActivity.delete(nodeId);
+      const nextMetrics = new Map(s.nodeLiveMetrics);
+      nextMetrics.delete(nodeId);
+      return { subAgents: nextAgents, nodeToolActivity: nextActivity, nodeLiveMetrics: nextMetrics };
+    });
+
     setNodeStatus(set, nodeId, nodeOutput.status === 'success' ? 'success' : 'error');
     appendLog(set, `${data.label} ${nodeOutput.status} (${durationMs}ms)`);
   } catch (err) {
@@ -433,6 +468,20 @@ async function executeNode(
       const next = new Map(s.nodeOutputs);
       next.set(nodeId, nodeOutput);
       return { nodeOutputs: next };
+    });
+
+    // Cleanup sub-agents and live tracking on error
+    useFlowStore.getState().removeSubAgentNodes(nodeId);
+    set((s) => {
+      const nextAgents = new Map(s.subAgents);
+      for (const [key, agent] of nextAgents) {
+        if (agent.parentNodeId === nodeId) nextAgents.delete(key);
+      }
+      const nextActivity = new Map(s.nodeToolActivity);
+      nextActivity.delete(nodeId);
+      const nextMetrics = new Map(s.nodeLiveMetrics);
+      nextMetrics.delete(nodeId);
+      return { subAgents: nextAgents, nodeToolActivity: nextActivity, nodeLiveMetrics: nextMetrics };
     });
 
     setNodeStatus(set, nodeId, 'error');
@@ -460,6 +509,7 @@ async function executeClaudeNode(
     permissionMode: data.permissionMode,
     workingDirectory: workingDir,
     additionalDirs: data.additionalDirs.length > 0 ? data.additionalDirs : undefined,
+    maxTurns: data.maxTurns > 0 ? data.maxTurns : undefined,
     continueSession: data.continueSession || undefined,
     jsonSchema: data.jsonSchema,
     timeoutMs: data.timeoutMs > 0 ? data.timeoutMs : undefined,
@@ -500,6 +550,137 @@ function tryParseJson(text: string): Record<string, unknown> | undefined {
     // Not JSON
   }
   return undefined;
+}
+
+function parseStreamLine(nodeId: string, line: string, set: SetFn) {
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(line);
+  } catch {
+    return;
+  }
+
+  if (!parsed || typeof parsed !== 'object' || !parsed.type) return;
+
+  if (parsed.type === 'assistant') {
+    // Increment turn count
+    set((s) => {
+      const next = new Map(s.nodeLiveMetrics);
+      const prev = next.get(nodeId) ?? { turns: 0, activeTools: [] };
+      next.set(nodeId, { ...prev, turns: prev.turns + 1 });
+      return { nodeLiveMetrics: next };
+    });
+
+    // Scan content for tool_use blocks
+    const message = parsed.message as Record<string, unknown> | undefined;
+    const content = (message?.content as Array<Record<string, unknown>>) ?? [];
+    for (const block of content) {
+      if (block.type !== 'tool_use') continue;
+      const toolName = block.name as string;
+      const toolUseId = block.id as string;
+
+      // Check if this is a Task tool (sub-agent spawn)
+      if (toolName === 'Task') {
+        const input = block.input as Record<string, unknown> | undefined;
+        const agentName = (input?.name as string) || 'Sub-agent';
+        const agentDesc = (input?.description as string) || '';
+        const agentId = toolUseId;
+
+        const agent: SubAgent = {
+          id: agentId,
+          parentNodeId: nodeId,
+          name: agentName,
+          description: agentDesc,
+          status: 'spawning',
+          spawnedAt: Date.now(),
+        };
+
+        set((s) => {
+          const next = new Map(s.subAgents);
+          next.set(agentId, agent);
+          return { subAgents: next };
+        });
+
+        // Place on canvas
+        const flowNodeId = useFlowStore.getState().addSubAgentNode(nodeId, {
+          id: agentId,
+          name: agentName,
+          description: agentDesc,
+          status: 'spawning',
+        });
+
+        if (flowNodeId) {
+          set((s) => {
+            const next = new Map(s.subAgents);
+            const a = next.get(agentId);
+            if (a) next.set(agentId, { ...a, flowNodeId, status: 'running' });
+            return { subAgents: next };
+          });
+          useFlowStore.getState().updateSubAgentStatus(flowNodeId, 'running');
+        }
+      }
+
+      // Track tool activity
+      const activity: ToolActivity = {
+        toolUseId,
+        toolName,
+        status: 'running',
+        startedAt: Date.now(),
+      };
+      set((s) => {
+        const nextActivity = new Map(s.nodeToolActivity);
+        const list = [...(nextActivity.get(nodeId) ?? []), activity];
+        nextActivity.set(nodeId, list);
+
+        const nextMetrics = new Map(s.nodeLiveMetrics);
+        const metrics = nextMetrics.get(nodeId) ?? { turns: 0, activeTools: [] };
+        nextMetrics.set(nodeId, { ...metrics, activeTools: [...metrics.activeTools, toolName] });
+
+        return { nodeToolActivity: nextActivity, nodeLiveMetrics: nextMetrics };
+      });
+    }
+  }
+
+  if (parsed.type === 'tool_result') {
+    const toolUseId = parsed.tool_use_id as string;
+
+    set((s) => {
+      // Mark tool as completed
+      const nextActivity = new Map(s.nodeToolActivity);
+      const list = (nextActivity.get(nodeId) ?? []).map(t =>
+        t.toolUseId === toolUseId ? { ...t, status: 'completed' as const } : t
+      );
+      nextActivity.set(nodeId, list);
+
+      // Remove from active tools
+      const nextMetrics = new Map(s.nodeLiveMetrics);
+      const metrics = nextMetrics.get(nodeId);
+      if (metrics) {
+        const completedTool = list.find(t => t.toolUseId === toolUseId);
+        const toolName = completedTool?.toolName;
+        const idx = toolName ? metrics.activeTools.indexOf(toolName) : -1;
+        const activeTools = idx >= 0
+          ? [...metrics.activeTools.slice(0, idx), ...metrics.activeTools.slice(idx + 1)]
+          : metrics.activeTools;
+        nextMetrics.set(nodeId, { ...metrics, activeTools });
+      }
+
+      // Update sub-agent status if this is a Task result
+      const agent = s.subAgents.get(toolUseId);
+      if (agent?.flowNodeId) {
+        const isError = (parsed as Record<string, unknown>).is_error === true;
+        useFlowStore.getState().updateSubAgentStatus(
+          agent.flowNodeId,
+          isError ? 'error' : 'completed'
+        );
+        const nextAgents = new Map(s.subAgents);
+        nextAgents.set(toolUseId, { ...agent, status: isError ? 'error' : 'completed' });
+        return { nodeToolActivity: nextActivity, nodeLiveMetrics: nextMetrics, subAgents: nextAgents };
+      }
+
+      return { nodeToolActivity: nextActivity, nodeLiveMetrics: nextMetrics };
+    });
+  }
 }
 
 interface ParsedClaudeOutput {

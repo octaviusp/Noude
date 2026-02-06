@@ -31,6 +31,8 @@ export function OutputPanel() {
 
   const streaming = useExecutionStore(s => displayNodeId ? s.getNodeStreaming(displayNodeId) : '');
   const output = useExecutionStore(s => displayNodeId ? s.getNodeOutput(displayNodeId) : undefined);
+  const toolActivity = useExecutionStore(s => displayNodeId ? s.nodeToolActivity.get(displayNodeId) ?? [] : []);
+  const liveMetrics = useExecutionStore(s => displayNodeId ? s.nodeLiveMetrics.get(displayNodeId) : undefined);
   const label = displayNodeId ? useFlowStore.getState().getNodeLabel(displayNodeId) : null;
   const logs = useExecutionStore(s => s.logs);
 
@@ -57,6 +59,9 @@ export function OutputPanel() {
           <span className="text-[11px] text-slate-500">
             {label}
           </span>
+        )}
+        {liveMetrics && (
+          <span className="text-[10px] text-sky-400 font-mono">Turn {liveMetrics.turns}</span>
         )}
         {flowStatus !== 'idle' && (
           <Badge variant={statusBadgeVariant[flowStatus] || 'slate'}>
@@ -85,6 +90,22 @@ export function OutputPanel() {
           ref={bodyRef}
           className="flex-1 overflow-y-auto px-4 py-3 font-mono text-xs leading-relaxed text-slate-400 whitespace-pre-wrap break-words"
         >
+          {toolActivity.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2 pb-2 border-b border-slate-800/50">
+              {toolActivity.slice(-8).map(t => (
+                <span
+                  key={t.toolUseId}
+                  className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                    t.status === 'running'
+                      ? 'bg-violet-500/15 text-violet-400'
+                      : 'bg-slate-800/50 text-slate-500'
+                  }`}
+                >
+                  {t.toolName}
+                </span>
+              ))}
+            </div>
+          )}
           {streaming ? (
             <span className="text-slate-200">{streaming}</span>
           ) : output?.result.text ? (
