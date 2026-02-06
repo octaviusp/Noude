@@ -1,33 +1,36 @@
+/* ===== Node Container ===== */
 .noude-node {
   width: 260px;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(71, 85, 105, 0.5);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: #1a2233;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
   overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .noude-node:hover {
-  border-color: rgba(71, 85, 105, 0.7);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
 }
 
 .noude-node.selected {
-  border-color: rgba(99, 102, 241, 0.5);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2), 0 12px 32px rgba(0, 0, 0, 0.3);
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15), var(--shadow-lg);
 }
 
-/* Header */
+/* ===== Header ===== */
 .noude-node-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(42, 58, 78, 0.6);
   position: relative;
 }
 
+/* Type-colored top stripe */
 .noude-node-header::before {
   content: '';
   position: absolute;
@@ -35,38 +38,41 @@
   left: 0;
   right: 0;
   height: 3px;
+  border-radius: 10px 10px 0 0;
 }
 
 .noude-node.type-claude-code .noude-node-header::before {
-  background: linear-gradient(90deg, var(--accent-claude), rgba(217, 119, 6, 0.4));
+  background: linear-gradient(90deg, var(--accent-claude), rgba(245, 158, 11, 0.3));
 }
 
 .noude-node.type-bash .noude-node-header::before {
-  background: linear-gradient(90deg, var(--accent-bash), rgba(99, 102, 241, 0.4));
+  background: linear-gradient(90deg, var(--accent-bash), rgba(129, 140, 248, 0.3));
 }
 
+/* ===== Icon ===== */
 .noude-node-icon {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 7px;
   flex-shrink: 0;
 }
 
 .noude-node.type-claude-code .noude-node-icon {
-  background: rgba(217, 119, 6, 0.15);
+  background: rgba(245, 158, 11, 0.12);
   color: var(--accent-claude);
 }
 
 .noude-node.type-bash .noude-node-icon {
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(129, 140, 248, 0.12);
   color: var(--accent-bash);
 }
 
+/* ===== Label ===== */
 .noude-node-label {
   flex: 1;
   font-size: 13px;
@@ -77,6 +83,7 @@
   white-space: nowrap;
 }
 
+/* ===== Status Dot ===== */
 .noude-node-status {
   width: 8px;
   height: 8px;
@@ -94,7 +101,7 @@
 }
 .noude-node-status.streaming {
   background: var(--status-streaming);
-  box-shadow: 0 0 6px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.5);
   animation: status-pulse 0.8s ease-in-out infinite;
 }
 .noude-node-status.success { background: var(--status-success); }
@@ -107,18 +114,18 @@
   50% { opacity: 0.5; transform: scale(1.4); }
 }
 
-/* Body */
+/* ===== Body ===== */
 .noude-node-body {
-  padding: 10px 12px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .noude-node-preview {
   font-size: 11px;
   color: var(--text-muted);
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--font-mono);
   line-height: 1.4;
   max-height: 48px;
   overflow: hidden;
@@ -128,6 +135,7 @@
   -webkit-box-orient: vertical;
 }
 
+/* ===== Badges ===== */
 .noude-node-badges {
   display: flex;
   gap: 4px;
@@ -136,77 +144,96 @@
 
 .noude-node-badge {
   font-size: 10px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   background: rgba(15, 23, 42, 0.6);
   color: var(--text-secondary);
   font-weight: 500;
-  border: 1px solid rgba(51, 65, 85, 0.3);
+  border: 1px solid rgba(42, 58, 78, 0.4);
 }
 
 .noude-node-badge.model {
   color: var(--accent-claude);
-  background: rgba(217, 119, 6, 0.1);
-  border-color: rgba(217, 119, 6, 0.2);
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
 }
 
 .noude-node-badge.shell {
   color: var(--accent-bash);
-  background: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(129, 140, 248, 0.08);
+  border-color: rgba(129, 140, 248, 0.2);
 }
 
+.noude-node-badge.autonomous {
+  color: var(--accent-autonomous);
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+/* ===== Duration ===== */
 .noude-node-duration {
   font-size: 10px;
   color: var(--text-muted);
+  font-family: var(--font-mono);
   text-align: right;
-  padding-top: 4px;
-  border-top: 1px solid rgba(51, 65, 85, 0.4);
+  padding-top: 6px;
+  border-top: 1px solid rgba(42, 58, 78, 0.4);
 }
 
-/* Handles */
+/* ===== Handles ===== */
 .noude-handle {
   width: 10px !important;
   height: 10px !important;
-  background: rgba(51, 65, 85, 0.8) !important;
-  border: 2px solid rgba(71, 85, 105, 0.8) !important;
+  background: var(--border-subtle) !important;
+  border: 2px solid var(--border-default) !important;
   border-radius: 50% !important;
   transition: all 0.15s ease !important;
 }
 
 .noude-handle:hover {
-  background: var(--accent-claude) !important;
-  border-color: var(--accent-claude) !important;
-  box-shadow: 0 0 8px rgba(217, 119, 6, 0.4) !important;
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4) !important;
   transform: scale(1.3) !important;
 }
 
-/* Animated Edge */
+/* ===== Animated Edge ===== */
 .noude-edge-path {
-  stroke: var(--border-light);
+  stroke: #334155;
   stroke-width: 2;
   fill: none;
+  transition: stroke 0.3s ease;
 }
 
 .noude-edge-path.running {
   stroke: var(--status-running);
-  stroke-dasharray: 8 4;
-  animation: dash 0.6s linear infinite;
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+  animation: edgeFlow 0.5s linear infinite;
 }
 
 .noude-edge-path.success {
   stroke: var(--status-success);
+  stroke-width: 2;
+  transition: stroke 0.3s ease;
 }
 
 .noude-edge-path.error {
   stroke: var(--status-error);
+  stroke-width: 2;
 }
 
-@keyframes dash {
-  to { stroke-dashoffset: -12; }
+@keyframes edgeFlow {
+  to { stroke-dashoffset: -10; }
 }
 
-/* Streaming indicator */
+/* Edge flow particle */
+.noude-edge-particle {
+  fill: var(--status-running);
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.6));
+}
+
+/* ===== Streaming Indicator ===== */
 .noude-node-streaming {
   display: flex;
   gap: 3px;
@@ -230,40 +257,44 @@
   50% { opacity: 1; }
 }
 
-/* Activity Ring */
+/* ===== Executing State ===== */
 .noude-node.executing {
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.4), 0 0 24px rgba(217, 119, 6, 0.15);
-  animation: activityRing 2s ease-in-out infinite;
+  border-color: rgba(59, 130, 246, 0.5);
+  animation: executingBreath 2.5s ease-in-out infinite;
 }
 
-@keyframes activityRing {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.4), 0 0 24px rgba(217, 119, 6, 0.15); }
-  50% { box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.2), 0 0 32px rgba(217, 119, 6, 0.25); }
+@keyframes executingBreath {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 16px rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 0 24px rgba(59, 130, 246, 0.2);
+  }
 }
 
-/* Sub-Agent Node */
+/* ===== Sub-Agent Node ===== */
 .sub-agent-node {
   width: 160px;
-  background: rgba(20, 30, 48, 0.85);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: #141e30;
+  border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: 10px;
   padding: 8px 10px;
   animation: subAgentSpawn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.1);
 }
 
 .sub-agent-node.running {
   border-color: rgba(56, 189, 248, 0.5);
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
 }
 
 .sub-agent-node.completed {
-  border-color: rgba(16, 185, 129, 0.4);
+  border-color: rgba(16, 185, 129, 0.35);
   opacity: 0.7;
 }
 
 .sub-agent-node.error {
-  border-color: rgba(239, 68, 68, 0.4);
+  border-color: rgba(239, 68, 68, 0.35);
   opacity: 0.7;
 }
 
@@ -282,7 +313,7 @@
   font-size: 10px;
   font-weight: 700;
   border-radius: 5px;
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.12);
   color: var(--accent-sub-agent);
 }
 
@@ -306,21 +337,27 @@
 }
 
 @keyframes subAgentSpawn {
-  from { opacity: 0; transform: scale(0.5) translateY(-20px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-/* Live Metrics */
+/* ===== Live Metrics ===== */
 .noude-node-live-metrics {
   display: flex;
   gap: 6px;
   font-size: 10px;
-  color: #38bdf8;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--accent-sub-agent);
+  font-family: var(--font-mono);
 }
 
 .noude-tool-indicator {
-  color: #a78bfa;
+  color: var(--accent-tool-active);
   animation: toolPulse 0.6s ease;
 }
 
@@ -329,17 +366,10 @@
   to { opacity: 1; }
 }
 
-/* Autonomous Badge */
-.noude-node-badge.autonomous {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-/* Cost Display */
+/* ===== Cost Display ===== */
 .noude-node-cost {
   font-size: 10px;
-  color: #f59e0b;
+  color: var(--accent-claude);
   text-align: right;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--font-mono);
 }

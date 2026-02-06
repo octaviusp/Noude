@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from 'react';
 
-type BadgeVariant = 'default' | 'amber' | 'indigo' | 'green' | 'red' | 'purple' | 'slate';
+type BadgeVariant = 'default' | 'amber' | 'indigo' | 'green' | 'red' | 'purple' | 'slate' | 'blue' | 'sky';
 
 const variantClasses: Record<BadgeVariant, string> = {
   default: 'bg-slate-700/50 text-slate-300 border-slate-600/30',
@@ -10,6 +10,8 @@ const variantClasses: Record<BadgeVariant, string> = {
   red: 'bg-red-900/30 text-red-400 border-red-700/30',
   purple: 'bg-purple-900/30 text-purple-400 border-purple-700/30',
   slate: 'bg-slate-800/50 text-slate-400 border-slate-600/30',
+  blue: 'bg-blue-900/30 text-blue-400 border-blue-700/30',
+  sky: 'bg-sky-900/30 text-sky-400 border-sky-700/30',
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -22,7 +24,8 @@ export function Badge({ variant = 'default', className = '', ...props }: BadgePr
       className={[
         'inline-flex items-center px-1.5 py-0.5',
         'text-[10px] font-medium leading-none',
-        'border rounded',
+        'border rounded-md',
+        'transition-colors duration-150',
         variantClasses[variant],
         className,
       ].join(' ')}
