@@ -736,7 +736,7 @@ function handleParsedStreamMessage(
   appendNodeLogEvent(set, nodeId, {
     kind,
     level,
-    title: streamTypeToTitle(type),
+    title: streamTypeToTitle(type, message.subtype),
     summary: message.summary,
     raw: message.raw,
     status: type === 'result'
@@ -781,11 +781,11 @@ function streamTypeToLogKind(type: string): AgentLogEvent['kind'] {
   return 'stdout';
 }
 
-function streamTypeToTitle(type: string): string {
+function streamTypeToTitle(type: string, subtype?: string): string {
   if (type === 'assistant') return 'Assistant';
-  if (type === 'system') return 'System';
+  if (type === 'system') return subtype ? `System ${subtype}` : 'System';
   if (type === 'user') return 'User';
-  if (type === 'result') return 'Result';
+  if (type === 'result') return subtype ? `Result ${subtype}` : 'Result';
   if (type === 'tool_result') return 'Tool result';
   return `Event: ${type}`;
 }

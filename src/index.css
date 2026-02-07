@@ -1508,6 +1508,23 @@ body {
   word-break: break-word;
 }
 
+.output-event-meta {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.output-event-meta-badge {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 1px 6px;
+  color: var(--text-faint);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 8px;
+  font-family: var(--font-mono);
+}
+
 .output-event-raw {
   margin-top: 6px;
   border: 1px solid var(--border-subtle);

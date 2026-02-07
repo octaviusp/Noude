@@ -163,6 +163,7 @@ function parseMessageObject(rawLine: string, obj: Record<string, unknown>): Pars
 
   return {
     type,
+    subtype: asString(obj.subtype),
     raw: rawLine,
     summary: type === 'system' ? systemSummary : messageSummary,
     assistantText: assistantText || undefined,

@@ -42,6 +42,59 @@ function eventClassName(event: AgentLogEvent): string {
   return '';
 }
 
+function parseRawEvent(event: AgentLogEvent): Record<string, unknown> | null {
+  if (!event.raw) return null;
+  try {
+    const parsed = JSON.parse(event.raw) as unknown;
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // raw can be plain text/stderr
+  }
+  return null;
+}
+
+function compactPath(path: string): string {
+  if (path.length <= 30) return path;
+  const parts = path.split('/').filter(Boolean);
+  if (parts.length <= 2) return path;
+  return `.../${parts.slice(-2).join('/')}`;
+}
+
+function buildEventMetaBadges(event: AgentLogEvent, nodeLabel: string | null): string[] {
+  const badges: string[] = [];
+  if (nodeLabel) badges.push(`node:${nodeLabel}`);
+
+  const rawObj = parseRawEvent(event);
+  if (!rawObj) return badges;
+
+  const subtype = typeof rawObj.subtype === 'string' ? rawObj.subtype : undefined;
+  const model = typeof rawObj.model === 'string' ? rawObj.model : undefined;
+  const session = typeof rawObj.session_id === 'string' ? rawObj.session_id : undefined;
+  const cwd = typeof rawObj.cwd === 'string' ? rawObj.cwd : undefined;
+  const turns = typeof rawObj.num_turns === 'number' ? rawObj.num_turns : undefined;
+  const cost = typeof rawObj.total_cost_usd === 'number' ? rawObj.total_cost_usd : undefined;
+
+  if (subtype) badges.push(`subtype:${subtype}`);
+  if (model) badges.push(`model:${model}`);
+  if (session) badges.push(`session:${session.slice(0, 8)}`);
+  if (cwd) badges.push(`cwd:${compactPath(cwd)}`);
+  if (turns != null) badges.push(`turns:${turns}`);
+  if (cost != null) badges.push(`$${cost.toFixed(4)}`);
+
+  return badges;
+}
+
+function prettyRaw(raw: string | undefined): string {
+  if (!raw) return '';
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2);
+  } catch {
+    return raw;
+  }
+}
+
 async function copyText(text: string) {
   if (!text) return;
   try {
@@ -286,6 +339,7 @@ export function OutputPanel() {
               {filteredTimeline.map(event => {
                 const canExpandRaw = Boolean(event.raw);
                 const expanded = expandedRaw.has(event.id);
+                const metaBadges = buildEventMetaBadges(event, label);
 
                 return (
                   <article key={event.id} className={['output-event', eventClassName(event)].join(' ').trim()}>
@@ -306,9 +360,18 @@ export function OutputPanel() {
                         </button>
                       )}
                     </header>
+                    {metaBadges.length > 0 && (
+                      <div className="output-event-meta">
+                        {metaBadges.map((badge) => (
+                          <span key={`${event.id}-${badge}`} className="output-event-meta-badge">
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <p className="output-event-summary">{event.summary}</p>
                     {expanded && event.raw && (
-                      <pre className="output-event-raw">{event.raw}</pre>
+                      <pre className="output-event-raw">{prettyRaw(event.raw)}</pre>
                     )}
                   </article>
                 );

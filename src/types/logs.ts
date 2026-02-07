@@ -53,6 +53,7 @@ export interface ParsedToolResult {
 
 export interface ParsedClaudeStreamMessage {
   type: string;
+  subtype?: string;
   raw: string;
   summary: string;
   assistantText?: string;
