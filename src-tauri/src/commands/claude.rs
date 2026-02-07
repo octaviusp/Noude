@@ -27,6 +27,21 @@ pub struct ClaudeInvokeArgs {
     pub timeout_ms: Option<u64>,
 }
 
+fn normalize_model_alias(model: &str) -> String {
+    let trimmed = model.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    let key = trimmed.to_lowercase().replace(' ', "-");
+    match key.as_str() {
+        "sonnet-latest" | "latest-sonnet" | "claude-sonnet-latest" => "sonnet".to_string(),
+        "opus-latest" | "latest-opus" | "claude-opus-latest" => "opus".to_string(),
+        "haiku-latest" | "latest-haiku" | "claude-haiku-latest" => "haiku".to_string(),
+        _ => trimmed.to_string(),
+    }
+}
+
 #[tauri::command]
 pub async fn invoke_claude(
     args: ClaudeInvokeArgs,
@@ -38,7 +53,10 @@ pub async fn invoke_claude(
     let mut cmd_args: Vec<String> = vec!["-p".into(), args.prompt.clone()];
 
     if let Some(ref model) = args.model {
-        cmd_args.extend(["--model".into(), model.clone()]);
+        let normalized = normalize_model_alias(model);
+        if !normalized.is_empty() {
+            cmd_args.extend(["--model".into(), normalized]);
+        }
     }
 
     let format = match args.output_format.as_deref() {

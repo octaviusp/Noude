@@ -5,9 +5,12 @@ import { BaseNode } from './BaseNode';
 import { useExecutionStore } from '../store/executionStore';
 
 const MODEL_LABELS: Record<string, string> = {
-  opus: 'Opus 4.6',
-  sonnet: 'Sonnet 4.5',
-  haiku: 'Haiku 4.5',
+  opus: 'Opus Latest',
+  sonnet: 'Sonnet Latest',
+  haiku: 'Haiku Latest',
+  default: 'Default',
+  opusplan: 'Opus Plan',
+  'sonnet[1m]': 'Sonnet 1M',
 };
 
 function formatModelLabel(model: string): string {

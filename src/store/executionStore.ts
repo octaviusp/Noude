@@ -647,13 +647,23 @@ async function executeClaudeNode(
   workingDir: string | undefined,
   onEvent: (event: ProcessEvent) => void,
 ): Promise<string> {
+  const normalizeModel = (value: string): string | undefined => {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    const key = trimmed.toLowerCase().replace(/\s+/g, '-');
+    if (key === 'sonnet-latest' || key === 'latest-sonnet' || key === 'claude-sonnet-latest') return 'sonnet';
+    if (key === 'opus-latest' || key === 'latest-opus' || key === 'claude-opus-latest') return 'opus';
+    if (key === 'haiku-latest' || key === 'latest-haiku' || key === 'claude-haiku-latest') return 'haiku';
+    return trimmed;
+  };
+
   const prompt = buildClaudePrompt(data.prompt, input);
   const extraPrompt = data.appendSystemPrompt?.trim();
   const systemPrompt = [buildClaudeSystemPrompt(data.label), extraPrompt].filter(Boolean).join('\n\n');
 
   return invokeClaude({
     prompt,
-    model: data.model.trim() || undefined,
+    model: normalizeModel(data.model),
     outputFormat: data.outputFormat,
     allowedTools: data.allowedTools.length > 0 ? data.allowedTools : undefined,
     disallowedTools: data.disallowedTools.length > 0 ? data.disallowedTools : undefined,

@@ -13,12 +13,33 @@ interface Props {
   onChange: (data: Partial<ClaudeCodeNodeData>) => void;
 }
 
+const MODEL_PRESETS = [
+  {
+    value: 'opus',
+    title: 'Opus Latest',
+    description: 'Most capable alias (auto-updates to latest Opus).',
+  },
+  {
+    value: 'sonnet',
+    title: 'Sonnet Latest',
+    description: 'Balanced alias for most coding tasks.',
+  },
+  {
+    value: 'haiku',
+    title: 'Haiku Latest',
+    description: 'Fastest alias for lightweight tasks.',
+  },
+] as const;
+
 const MODEL_SUGGESTIONS = [
+  'default',
   'sonnet',
   'opus',
   'haiku',
-  'claude-sonnet-4-5-20250929',
+  'sonnet[1m]',
+  'opusplan',
   'claude-opus-4-6',
+  'claude-sonnet-4-5',
   'claude-haiku-4-5',
 ] as const;
 
@@ -46,6 +67,17 @@ function parseDelimitedList(value: string): string[] {
 
 function joinDelimitedList(values: string[]): string {
   return values.join(', ');
+}
+
+function normalizeModelAlias(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const key = trimmed.toLowerCase().replace(/\s+/g, '-');
+  if (key === 'sonnet-latest' || key === 'latest-sonnet' || key === 'claude-sonnet-latest') return 'sonnet';
+  if (key === 'opus-latest' || key === 'latest-opus' || key === 'claude-opus-latest') return 'opus';
+  if (key === 'haiku-latest' || key === 'latest-haiku' || key === 'claude-haiku-latest') return 'haiku';
+  return trimmed;
 }
 
 function SectionHeader({ label, open, onToggle }: { label: string; open: boolean; onToggle: () => void }) {
@@ -143,10 +175,26 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
             </p>
 
             <div className="config-field">
-              <FieldLabel hint="alias or full model id">Model</FieldLabel>
+              <FieldLabel hint="aliases auto-track latest releases">Model</FieldLabel>
+              <div className="config-model-presets">
+                {MODEL_PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    className={[
+                      'config-model-preset',
+                      data.model === preset.value ? 'is-active' : '',
+                    ].join(' ').trim()}
+                    onClick={() => onChange({ model: preset.value })}
+                  >
+                    <span className="config-model-preset-title">{preset.title}</span>
+                    <span className="config-model-preset-desc">{preset.description}</span>
+                  </button>
+                ))}
+              </div>
               <Input
                 value={data.model}
-                onChange={e => onChange({ model: e.target.value })}
+                onChange={e => onChange({ model: normalizeModelAlias(e.target.value) })}
                 placeholder="sonnet"
                 list="claude-model-options"
               />
@@ -155,6 +203,9 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
                   <option key={model} value={model} />
                 ))}
               </datalist>
+              <FieldNote>
+                Tip: use <code>sonnet</code>, <code>opus</code>, or <code>haiku</code> for automatic latest selection.
+              </FieldNote>
             </div>
 
             <div className="config-field">
