@@ -196,8 +196,8 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   },
 
   exportToJson: () => {
-    const { flowName, nodes, edges, viewport } = get();
-    return exportFlow(flowName, nodes, edges, viewport);
+    const { flowName, nodes, edges, viewport, flowId, defaults } = get();
+    return exportFlow(flowName, nodes, edges, viewport, flowId, defaults);
   },
 
   importFromJson: (json) => {

@@ -161,6 +161,8 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   logs: [],
 
   runFlow: async () => {
+    if (get().flowStatus === 'running') return;
+
     const flow = useFlowStore.getState();
     const nodeIds = flow.getEnabledNodeIds();
     const edges = flow.getEnabledEdges();

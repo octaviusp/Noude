@@ -1,23 +1,25 @@
 import type { FlowDefinition } from '../types';
 import type { Node, Edge, Viewport } from '@xyflow/react';
-import { FLOW_DEFAULTS } from '../constants';
 
 export function exportFlow(
   name: string,
   nodes: Node[],
   edges: Edge[],
-  viewport: Viewport
+  viewport: Viewport,
+  flowId: string,
+  defaults: FlowDefinition['defaults'],
+  createdAt?: string,
 ): FlowDefinition {
   return {
     version: 1,
-    id: crypto.randomUUID(),
+    id: flowId,
     name,
-    createdAt: new Date().toISOString(),
+    createdAt: createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     nodes,
     edges,
     viewport,
-    defaults: { ...FLOW_DEFAULTS },
+    defaults,
   };
 }
 
