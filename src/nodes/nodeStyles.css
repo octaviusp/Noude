@@ -1,0 +1,519 @@
+.noude-node {
+  width: 280px;
+  background:
+    linear-gradient(162deg, rgba(35, 36, 46, 0.94), rgba(19, 20, 29, 0.95)),
+    radial-gradient(circle at 10% 2%, rgba(255, 255, 255, 0.06), transparent 56%);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+  overflow: visible;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  backdrop-filter: blur(14px);
+  position: relative;
+}
+
+.noude-node::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(128deg, rgba(255, 255, 255, 0.04), transparent 38%);
+  border-radius: inherit;
+}
+
+.noude-node:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.44);
+}
+
+.noude-node.selected {
+  border-color: rgba(91, 111, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(91, 111, 255, 0.15), 0 18px 34px rgba(0, 0, 0, 0.44);
+}
+
+.noude-node.is-disabled {
+  opacity: 0.62;
+  filter: saturate(0.74);
+}
+
+.noude-node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  position: relative;
+}
+
+.noude-node-header::before {
+  content: '';
+  position: absolute;
+  inset: 6px auto 6px 0;
+  width: 2.5px;
+  height: auto;
+  border-radius: 0 3px 3px 0;
+}
+
+.noude-node.type-claude-code .noude-node-header::before {
+  background: linear-gradient(180deg, rgba(255, 130, 140, 0.85), rgba(255, 71, 87, 0.5));
+}
+
+.noude-node.type-bash .noude-node-header::before {
+  background: linear-gradient(180deg, rgba(152, 210, 130, 0.85), rgba(127, 176, 105, 0.5));
+}
+
+.noude-node-icon {
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.noude-node.type-claude-code .noude-node-icon {
+  background: rgba(255, 130, 140, 0.1);
+  color: rgba(255, 130, 140, 0.9);
+}
+
+.noude-node.type-bash .noude-node-icon {
+  background: rgba(152, 210, 130, 0.1);
+  color: rgba(152, 210, 130, 0.9);
+}
+
+.noude-node-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: 0.01em;
+}
+
+.noude-node-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.noude-node-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.noude-node-label-button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.16s ease;
+}
+
+.noude-node-label-button:hover {
+  color: var(--text-primary);
+}
+
+.noude-node-label-input {
+  width: 100%;
+  min-width: 0;
+  border-radius: 6px;
+  border: 1px solid rgba(91, 111, 255, 0.4);
+  background: rgba(14, 15, 22, 0.8);
+  color: var(--text-strong);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 6px;
+  outline: none;
+}
+
+.noude-node-label-input:focus {
+  border-color: rgba(130, 145, 255, 0.66);
+  box-shadow: 0 0 0 2px rgba(91, 111, 255, 0.18);
+}
+
+.noude-node-edit-label {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.16s ease;
+}
+
+.noude-node-edit-label:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.noude-node-settings-btn {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-faint);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.3;
+  transform: translateY(1px);
+  transition: opacity 0.16s ease, color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.noude-node:hover .noude-node-settings-btn,
+.noude-node.selected .noude-node-settings-btn {
+  opacity: 0.7;
+}
+
+.noude-node-settings-btn:hover {
+  opacity: 1;
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.noude-node-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.noude-node-status.idle { background: var(--status-idle); }
+.noude-node-status.queued { background: var(--status-queued); }
+.noude-node-status.running {
+  background: var(--status-running);
+  box-shadow: 0 0 8px rgba(91, 111, 255, 0.5);
+  animation: statusPulse 1.35s ease-in-out infinite;
+}
+.noude-node-status.streaming {
+  background: var(--status-streaming);
+  box-shadow: 0 0 8px rgba(130, 145, 255, 0.5);
+  animation: statusPulse 0.95s ease-in-out infinite;
+}
+.noude-node-status.success { background: var(--status-success); }
+.noude-node-status.error { background: var(--status-error); }
+.noude-node-status.cancelled { background: var(--status-cancelled); }
+.noude-node-status.skipped { background: var(--status-cancelled); }
+
+.noude-node-body {
+  padding: 8px 10px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.noude-node-summary {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  line-height: 1.55;
+  max-height: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.noude-node.type-claude-code .noude-node-summary {
+  font-family: var(--font-sans);
+}
+
+.noude-node-summary.is-empty {
+  font-style: italic;
+  font-family: var(--font-sans);
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.14s ease;
+}
+
+.noude-node-summary.is-empty:hover {
+  color: var(--text-muted);
+}
+
+.noude-node-badges {
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.noude-node-badge {
+  font-size: 8.5px;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.noude-node-badge.model {
+  color: var(--text-secondary);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.noude-node-badge.shell {
+  color: rgba(152, 215, 124, 0.96);
+  border-color: rgba(127, 176, 105, 0.28);
+  background: rgba(127, 176, 105, 0.1);
+}
+
+.noude-node-badge.autonomous {
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.noude-node-badge.debug {
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.noude-node-duration,
+.noude-node-cost,
+.noude-node-live-metrics {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.noude-node-duration {
+  text-align: right;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.noude-node-cost {
+  text-align: right;
+  color: rgba(255, 130, 138, 0.92);
+}
+
+.noude-node-live-metrics {
+  display: flex;
+  gap: 8px;
+}
+
+.noude-tool-indicator {
+  color: var(--accent-blue);
+  animation: toolPulse 0.5s ease;
+}
+
+.noude-handle {
+  width: 9px !important;
+  height: 9px !important;
+  background: var(--bg-secondary) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+  border-radius: 999px !important;
+  transition: all 0.16s ease, opacity 0.16s ease !important;
+  box-shadow: 0 0 0 1px rgba(9, 10, 16, 0.54) !important;
+  opacity: 0.5;
+}
+
+.noude-node:hover .noude-handle,
+.noude-node.selected .noude-handle {
+  opacity: 1 !important;
+}
+
+.noude-handle::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+}
+
+.noude-handle:hover {
+  width: 11px !important;
+  height: 11px !important;
+  border-color: rgba(130, 145, 255, 0.7) !important;
+  background: rgba(130, 145, 255, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.noude-handle.connectingto,
+.noude-handle.connectingfrom {
+  background: rgba(130, 145, 255, 0.95) !important;
+  border-color: rgba(130, 145, 255, 1) !important;
+}
+
+.noude-edge-path {
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 1.5;
+  fill: none;
+  transition: stroke 0.3s ease;
+}
+
+.noude-edge-path.running {
+  stroke: rgba(130, 145, 255, 0.7);
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  animation: edgeFlow 0.8s linear infinite;
+}
+
+.noude-edge-path.success {
+  stroke: var(--status-success);
+  stroke-width: 1.5;
+  opacity: 0.5;
+}
+
+.noude-edge-path.error {
+  stroke: var(--status-error);
+  stroke-width: 1.5;
+  opacity: 0.5;
+}
+
+.noude-edge-particle {
+  fill: var(--accent-blue);
+  filter: drop-shadow(0 0 3px rgba(91, 111, 255, 0.5));
+}
+
+.noude-node-streaming {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 3px;
+}
+
+.noude-node-streaming .dot {
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 50%;
+  background: var(--status-streaming);
+  animation: streamDot 1.2s ease-in-out infinite;
+}
+
+.noude-node-streaming .dot:nth-child(2) { animation-delay: 0.18s; }
+.noude-node-streaming .dot:nth-child(3) { animation-delay: 0.36s; }
+
+.noude-node.executing {
+  border-color: rgba(91, 111, 255, 0.4);
+  animation: executingBreath 2.8s ease-in-out infinite;
+}
+
+.sub-agent-node {
+  width: 152px;
+  background: rgba(36, 37, 46, 0.88);
+  border: 1px solid rgba(91, 111, 255, 0.24);
+  border-radius: 10px;
+  padding: 8px 9px;
+  animation: subAgentSpawn 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.sub-agent-node.running {
+  border-color: rgba(91, 111, 255, 0.45);
+}
+
+.sub-agent-node.completed {
+  border-color: rgba(127, 176, 105, 0.35);
+  opacity: 0.75;
+}
+
+.sub-agent-node.error {
+  border-color: rgba(255, 71, 87, 0.4);
+  opacity: 0.75;
+}
+
+.sub-agent-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sub-agent-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: rgba(91, 111, 255, 0.15);
+  color: var(--accent-blue);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sub-agent-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-agent-desc {
+  margin-top: 4px;
+  font-size: 9px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.28); }
+}
+
+@keyframes edgeFlow {
+  to { stroke-dashoffset: -12; }
+}
+
+@keyframes streamDot {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@keyframes executingBreath {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(91, 111, 255, 0.24), 0 0 14px rgba(91, 111, 255, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(91, 111, 255, 0.12), 0 0 16px rgba(91, 111, 255, 0.14);
+  }
+}
+
+@keyframes toolPulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+@keyframes subAgentSpawn {
+  from {
+    opacity: 0;
+    transform: scale(0.75) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noude-node-status.running,
+  .noude-node-status.streaming { animation: none; }
+  .noude-node.executing { animation: none; }
+}
