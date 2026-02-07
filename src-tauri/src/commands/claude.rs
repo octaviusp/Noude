@@ -8,6 +8,14 @@ use tokio::io::AsyncBufReadExt;
 use tokio::sync::watch;
 use uuid::Uuid;
 
+macro_rules! send_event {
+    ($channel:expr, $event:expr) => {
+        if let Err(e) = $channel.send($event) {
+            eprintln!("[noude:claude] channel send failed: {}", e);
+        }
+    };
+}
+
 /// Kill entire process group (child + all descendants) on unix.
 /// Falls back to child.kill() on non-unix or if killpg fails.
 #[cfg(unix)]
@@ -168,7 +176,7 @@ pub async fn invoke_claude(
         .map_err(|e| AppError::Process(format!("Failed to spawn claude: {}", e)))?;
 
     let pid = child.id().unwrap_or(0);
-    let _ = on_event.send(ProcessEvent::Started {
+    send_event!(on_event, ProcessEvent::Started {
         process_id: process_id.clone(),
         pid,
     });
@@ -214,7 +222,7 @@ pub async fn invoke_claude(
                         Ok(Some(l)) => {
                             stdout_buf.push_str(&l);
                             stdout_buf.push('\n');
-                            let _ = on_event_clone.send(ProcessEvent::Stdout {
+                            send_event!(on_event_clone,ProcessEvent::Stdout {
                                 process_id: pid_clone.clone(),
                                 chunk: format!("{}\n", l),
                             });
@@ -223,7 +231,7 @@ pub async fn invoke_claude(
                             stdout_done = true;
                         }
                         Err(e) => {
-                            let _ = on_event_clone.send(ProcessEvent::Error {
+                            send_event!(on_event_clone,ProcessEvent::Error {
                                 process_id: pid_clone.clone(),
                                 message: format!("stdout read error: {}", e),
                             });
@@ -236,7 +244,7 @@ pub async fn invoke_claude(
                         Ok(Some(l)) => {
                             stderr_buf.push_str(&l);
                             stderr_buf.push('\n');
-                            let _ = on_event_clone.send(ProcessEvent::Stderr {
+                            send_event!(on_event_clone,ProcessEvent::Stderr {
                                 process_id: pid_clone.clone(),
                                 chunk: format!("{}\n", l),
                             });
@@ -246,7 +254,7 @@ pub async fn invoke_claude(
                         }
                         Err(e) => {
                             stderr_done = true;
-                            let _ = on_event_clone.send(ProcessEvent::Error {
+                            send_event!(on_event_clone,ProcessEvent::Error {
                                 process_id: pid_clone.clone(),
                                 message: format!("stderr read error: {}", e),
                             });
@@ -256,7 +264,7 @@ pub async fn invoke_claude(
                 _ = cancel_rx.changed() => {
                     if *cancel_rx.borrow() {
                         kill_process_tree(&mut child).await;
-                        let _ = on_event_clone.send(ProcessEvent::Cancelled {
+                        send_event!(on_event_clone,ProcessEvent::Cancelled {
                             process_id: pid_clone.clone(),
                         });
                         pm.remove(&pid_clone);
@@ -266,7 +274,7 @@ pub async fn invoke_claude(
                 timed_out = &mut timeout_fut => {
                     if timed_out {
                         kill_process_tree(&mut child).await;
-                        let _ = on_event_clone.send(ProcessEvent::Error {
+                        send_event!(on_event_clone,ProcessEvent::Error {
                             process_id: pid_clone.clone(),
                             message: "Process timed out".to_string(),
                         });
@@ -280,7 +288,7 @@ pub async fn invoke_claude(
         let status = child.wait().await;
         let exit_code = status.ok().and_then(|s| s.code());
 
-        let _ = on_event_clone.send(ProcessEvent::Completed {
+        send_event!(on_event_clone,ProcessEvent::Completed {
             process_id: pid_clone.clone(),
             exit_code,
             stdout_full: stdout_buf,

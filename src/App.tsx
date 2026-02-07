@@ -9,7 +9,7 @@ import {
   type OnSelectionChangeParams,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useFlowStore } from './store/flowStore';
+import { useFlowStore, setReactFlowInstance } from './store/flowStore';
 import { useExecutionStore } from './store/executionStore';
 import { useUiStore } from './store/uiStore';
 import { nodeTypes } from './nodes';
@@ -105,8 +105,9 @@ export default function App() {
       // Cmd+S — Save flow
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
-        const flow = useFlowStore.getState().exportToJson();
-        downloadFlow(flow);
+        const state = useFlowStore.getState();
+        downloadFlow(state.exportToJson());
+        state.markClean();
         return;
       }
 
@@ -132,6 +133,13 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.key === ',' && selectedNodeId) {
         event.preventDefault();
         setNodeSettingsSheetNodeId(selectedNodeId);
+        return;
+      }
+
+      // Delete/Backspace — Delete selected node
+      if (!isTyping && (event.key === 'Delete' || event.key === 'Backspace') && selectedNodeId) {
+        event.preventDefault();
+        useFlowStore.getState().removeNode(selectedNodeId);
         return;
       }
 
@@ -244,6 +252,7 @@ export default function App() {
               onConnect={onConnect}
               onInit={instance => {
                 reactFlowRef.current = instance;
+                setReactFlowInstance(instance);
               }}
               onMoveEnd={(_, viewport) => setViewport(viewport)}
               onSelectionChange={onSelectionChange}

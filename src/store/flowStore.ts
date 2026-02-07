@@ -7,6 +7,7 @@ import {
   type OnEdgesChange,
   type OnConnect,
   type Connection,
+  type ReactFlowInstance,
   applyNodeChanges,
   applyEdgeChanges,
   addEdge,
@@ -15,6 +16,13 @@ import type { AnyNodeData, NoudeEdgeData, FlowDefinition } from '../types';
 import { NODE_DEFAULTS, FLOW_DEFAULTS } from '../constants';
 import { layoutNodes } from '../lib/elk';
 import { exportFlow, importFlow } from '../lib/serialization';
+
+// Module-level ReactFlow instance for fit-view after layout
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let rfInstance: ReactFlowInstance<any, any> | null = null;
+export function setReactFlowInstance(instance: ReactFlowInstance<any, any> | null) {
+  rfInstance = instance;
+}
 
 interface FlowDefaults {
   workingDirectory: string;
@@ -31,6 +39,9 @@ interface FlowState {
   flowName: string;
   flowId: string;
   defaults: FlowDefaults;
+
+  // Dirty tracking
+  isDirty: boolean;
 
   // Selection
   selectedNodeId: string | null;
@@ -57,6 +68,7 @@ interface FlowState {
   setDefaults: (defaults: Partial<FlowDefaults>) => void;
   autoLayout: () => Promise<void>;
   clearFlow: () => void;
+  markClean: () => void;
 
   // Serialization
   exportToJson: () => FlowDefinition;
@@ -81,6 +93,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   flowName: 'Untitled Flow',
   flowId: crypto.randomUUID(),
   defaults: { ...FLOW_DEFAULTS },
+  isDirty: false,
   selectedNodeId: null,
 
   onNodesChange: (changes) => {
@@ -191,7 +204,12 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     if (nodes.length === 0) return;
     const laid = await layoutNodes(nodes, edges);
     set({ nodes: laid as Node<AnyNodeData>[] });
+    requestAnimationFrame(() => {
+      rfInstance?.fitView({ duration: 300, padding: 0.2 });
+    });
   },
+
+  markClean: () => set({ isDirty: false }),
 
   clearFlow: () => {
     set({
