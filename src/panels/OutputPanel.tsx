@@ -314,6 +314,11 @@ export function OutputPanel() {
                 );
               })}
             </div>
+          ) : timeline.length > 0 ? (
+            <div className="output-empty">
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>No events for filter: {filter}</span>
+            </div>
           ) : streaming ? (
             <span className="output-text">{streaming}</span>
           ) : output?.result.text ? (

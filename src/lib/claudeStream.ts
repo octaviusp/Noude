@@ -102,7 +102,7 @@ export function extractClaudeResultMeta(obj: Record<string, unknown>): ClaudeRes
 
 function summarizeMessage(type: string, text: string, tools: ParsedToolUse[], results: ParsedToolResult[]): string {
   if (type === 'assistant') {
-    if (text) return truncate(text);
+    if (text) return text;
     if (tools.length > 0) return `Assistant invoked ${tools.length} tool${tools.length > 1 ? 's' : ''}`;
     return 'Assistant message';
   }
@@ -114,9 +114,32 @@ function summarizeMessage(type: string, text: string, tools: ParsedToolUse[], re
     return text ? truncate(text) : 'System event';
   }
   if (type === 'result') {
-    return text ? truncate(text) : 'Final result';
+    return text || 'Final result';
   }
   return text ? truncate(text) : `Stream event: ${type}`;
+}
+
+function summarizeSystemMessage(obj: Record<string, unknown>): string {
+  const subtype = asString(obj.subtype);
+  if (subtype === 'init') {
+    const cwd = asString(obj.cwd);
+    const model = asString(obj.model);
+    const sessionId = asString(obj.session_id);
+    const tools = Array.isArray(obj.tools) ? obj.tools.length : undefined;
+
+    const parts = [
+      'Session initialized',
+      model ? `model=${model}` : undefined,
+      cwd ? `cwd=${cwd}` : undefined,
+      sessionId ? `session=${sessionId.slice(0, 8)}` : undefined,
+      tools != null ? `tools=${tools}` : undefined,
+    ].filter(Boolean);
+
+    return parts.join(' | ');
+  }
+
+  if (subtype) return `System event: ${subtype}`;
+  return 'System event';
 }
 
 function parseMessageObject(rawLine: string, obj: Record<string, unknown>): ParsedClaudeStreamMessage {
@@ -125,6 +148,7 @@ function parseMessageObject(rawLine: string, obj: Record<string, unknown>): Pars
   const content = getContentBlocks(message);
 
   const assistantText = extractTextBlocks(content);
+  const resultText = asString(obj.result);
   const toolUses = extractToolUses(content);
   const contentToolResults = extractToolResults(content);
 
@@ -134,11 +158,13 @@ function parseMessageObject(rawLine: string, obj: Record<string, unknown>): Pars
 
   const toolResults = [...contentToolResults, ...topLevelToolResults];
   const hasPartialSubtype = (asString(obj.subtype) ?? '').toLowerCase().includes('partial');
+  const systemSummary = type === 'system' ? summarizeSystemMessage(obj) : '';
+  const messageSummary = summarizeMessage(type, resultText ?? assistantText, toolUses, toolResults);
 
   return {
     type,
     raw: rawLine,
-    summary: summarizeMessage(type, assistantText, toolUses, toolResults),
+    summary: type === 'system' ? systemSummary : messageSummary,
     assistantText: assistantText || undefined,
     assistantTurn: type === 'assistant' && !hasPartialSubtype,
     toolUses,
