@@ -41,7 +41,12 @@ pub async fn invoke_claude(
         cmd_args.extend(["--model".into(), model.clone()]);
     }
 
-    let format = args.output_format.as_deref().unwrap_or("json");
+    let format = match args.output_format.as_deref() {
+        Some("json") => "json",
+        Some("stream-json") => "stream-json",
+        Some("text") => "text",
+        _ => "stream-json",
+    };
     cmd_args.extend(["--output-format".into(), format.into()]);
 
     // Claude CLI requires --verbose with --print when using stream-json output.
@@ -74,10 +79,12 @@ pub async fn invoke_claude(
     }
 
     if let Some(ref mode) = args.permission_mode {
-        if mode == "bypassPermissions" {
-            cmd_args.push("--dangerously-skip-permissions".into());
-        } else if mode != "default" {
-            cmd_args.extend(["--permission-mode".into(), mode.clone()]);
+        match mode.as_str() {
+            "bypassPermissions" => cmd_args.push("--dangerously-skip-permissions".into()),
+            "acceptEdits" | "dontAsk" | "plan" | "delegate" => {
+                cmd_args.extend(["--permission-mode".into(), mode.clone()]);
+            }
+            _ => {}
         }
     }
 

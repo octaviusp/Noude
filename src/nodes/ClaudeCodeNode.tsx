@@ -10,6 +10,14 @@ const MODEL_LABELS: Record<string, string> = {
   haiku: 'Haiku 4.5',
 };
 
+function formatModelLabel(model: string): string {
+  if (MODEL_LABELS[model]) return MODEL_LABELS[model];
+  if (model.length <= 20) return model;
+  const pieces = model.split('-');
+  if (pieces.length > 2) return pieces.slice(-3).join('-');
+  return `${model.slice(0, 18)}…`;
+}
+
 export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
   const d = data as ClaudeCodeNodeData;
   const status = useExecutionStore(s => s.getNodeStatus(id));
@@ -30,7 +38,7 @@ export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
   return (
     <BaseNode id={id} data={data as AnyNodeData} selected={selected} icon="C">
       <div className="noude-node-badges">
-        <span className="noude-node-badge model">{MODEL_LABELS[d.model] ?? d.model}</span>
+        <span className="noude-node-badge model">{formatModelLabel(d.model)}</span>
         {d.permissionMode === 'bypassPermissions' && (
           <span className="noude-node-badge autonomous">AUTO</span>
         )}

@@ -13,7 +13,7 @@ export interface BaseNodeData {
 export interface ClaudeCodeNodeData extends BaseNodeData {
   nodeType: 'claude-code';
   prompt: string;
-  model: 'sonnet' | 'opus' | 'haiku';
+  model: string;
   outputFormat: 'json' | 'stream-json' | 'text';
   allowedTools: string[];
   disallowedTools: string[];

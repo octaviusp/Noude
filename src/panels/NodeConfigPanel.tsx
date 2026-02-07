@@ -1,9 +1,11 @@
 import { Sparkles, Terminal, X, Trash2 } from 'lucide-react';
 import { useFlowStore } from '../store/flowStore';
+import { useExecutionStore } from '../store/executionStore';
 import type { AnyNodeData } from '../types';
 import { ClaudeCodeConfig } from './ClaudeCodeConfig';
 import { BashConfig } from './BashConfig';
 import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 
 const nodeIcons: Record<string, typeof Sparkles> = {
@@ -16,12 +18,24 @@ const nodeAccentClass: Record<string, string> = {
   bash: 'node-accent-bash',
 };
 
+const statusBadgeVariant: Record<string, 'default' | 'amber' | 'indigo' | 'green' | 'red' | 'purple' | 'slate' | 'blue'> = {
+  idle: 'slate',
+  queued: 'amber',
+  running: 'blue',
+  streaming: 'indigo',
+  success: 'green',
+  error: 'red',
+  cancelled: 'slate',
+  skipped: 'slate',
+};
+
 export function NodeConfigPanel() {
   const selectedNodeId = useFlowStore(s => s.selectedNodeId);
   const getNode = useFlowStore(s => s.getNode);
   const updateNodeData = useFlowStore(s => s.updateNodeData);
   const removeNode = useFlowStore(s => s.removeNode);
   const selectNode = useFlowStore(s => s.selectNode);
+  const getNodeStatus = useExecutionStore(s => s.getNodeStatus);
 
   if (!selectedNodeId) return null;
 
@@ -32,6 +46,8 @@ export function NodeConfigPanel() {
   const onChange = (partial: Partial<AnyNodeData>) => updateNodeData(selectedNodeId, partial);
   const Icon = nodeIcons[data.nodeType] || Sparkles;
   const accentClass = nodeAccentClass[data.nodeType] || 'node-accent-default';
+  const nodeStatus = getNodeStatus(selectedNodeId);
+  const statusVariant = statusBadgeVariant[nodeStatus] || 'slate';
 
   return (
     <aside className="config-panel" aria-label="Node configuration panel">
@@ -43,6 +59,7 @@ export function NodeConfigPanel() {
           <div className="config-panel-title">{data.label}</div>
           <div className="config-panel-subtitle">{data.nodeType.replace('-', ' ')} node</div>
         </div>
+        <Badge variant={statusVariant}>{nodeStatus}</Badge>
         <button
           type="button"
           onClick={() => selectNode(null)}
@@ -66,6 +83,10 @@ export function NodeConfigPanel() {
                 onChange={e => onChange({ label: e.target.value })}
               />
             </label>
+            <div className="config-field">
+              <span className="config-label">Node ID</span>
+              <code className="config-inline-code">{selectedNodeId}</code>
+            </div>
           </div>
         </section>
 

@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ChevronDown, ChevronRight, FolderSearch } from 'lucide-react';
 import type { ClaudeCodeNodeData } from '../types';
+import { pickFolder } from '../lib/tauri';
+import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select } from '../components/ui/select';
@@ -9,6 +11,41 @@ import { Switch } from '../components/ui/switch';
 interface Props {
   data: ClaudeCodeNodeData;
   onChange: (data: Partial<ClaudeCodeNodeData>) => void;
+}
+
+const MODEL_SUGGESTIONS = [
+  'sonnet',
+  'opus',
+  'haiku',
+  'claude-sonnet-4-5-20250929',
+  'claude-opus-4-6',
+  'claude-haiku-4-5',
+] as const;
+
+const OUTPUT_FORMAT_HINTS: Record<ClaudeCodeNodeData['outputFormat'], string> = {
+  'stream-json': 'Best for live timeline logs. Noude auto-adds --verbose for compatibility.',
+  json: 'Returns a single JSON result object when execution completes.',
+  text: 'Returns plain text only. Use when you do not need structured events.',
+};
+
+const PERMISSION_MODE_OPTIONS: Array<{ value: ClaudeCodeNodeData['permissionMode']; label: string; hint: string }> = [
+  { value: 'bypassPermissions', label: 'Bypass Permissions', hint: 'Runs with --dangerously-skip-permissions.' },
+  { value: 'dontAsk', label: "Don't Ask", hint: 'Auto-proceeds with tools without approval prompts.' },
+  { value: 'acceptEdits', label: 'Accept Edits', hint: 'Auto-accepts file edits while keeping command prompts.' },
+  { value: 'plan', label: 'Plan', hint: 'Planning-first behavior before execution.' },
+  { value: 'default', label: 'Default', hint: 'Uses Claude Code default permission behavior.' },
+  { value: 'delegate', label: 'Delegate', hint: 'Delegates permission decisions to configured policy.' },
+];
+
+function parseDelimitedList(value: string): string[] {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function joinDelimitedList(values: string[]): string {
+  return values.join(', ');
 }
 
 function SectionHeader({ label, open, onToggle }: { label: string; open: boolean; onToggle: () => void }) {
@@ -33,6 +70,10 @@ function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: stri
   );
 }
 
+function FieldNote({ children }: { children: React.ReactNode }) {
+  return <p className="config-field-note">{children}</p>;
+}
+
 function SwitchRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="config-switch-row">
@@ -44,8 +85,22 @@ function SwitchRow({ label, checked, onChange }: { label: string; checked: boole
 
 export function ClaudeCodeConfig({ data, onChange }: Props) {
   const [promptOpen, setPromptOpen] = useState(true);
-  const [modelOpen, setModelOpen] = useState(true);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [runtimeOpen, setRuntimeOpen] = useState(true);
+  const [toolsOpen, setToolsOpen] = useState(true);
+  const [limitsOpen, setLimitsOpen] = useState(false);
+  const [structuredOpen, setStructuredOpen] = useState(
+    data.outputFormat === 'json' || Boolean(data.jsonSchema?.trim())
+  );
+
+  const permissionHint = useMemo(() => {
+    return PERMISSION_MODE_OPTIONS.find((opt) => opt.value === data.permissionMode)?.hint
+      ?? 'Uses Claude Code permission handling.';
+  }, [data.permissionMode]);
+
+  const pickWorkingDirectory = async () => {
+    const folder = await pickFolder();
+    if (folder) onChange({ workingDirectory: folder });
+  };
 
   return (
     <>
@@ -53,21 +108,25 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
         <SectionHeader label="Prompt" open={promptOpen} onToggle={() => setPromptOpen(!promptOpen)} />
         {promptOpen && (
           <div className="config-section-content">
+            <p className="config-section-description">
+              Write the task for this agent. Use <code>{'{{input}}'}</code> to place upstream node output exactly where you want it.
+            </p>
+
             <div className="config-field">
-              <FieldLabel hint="Use {{input}} for upstream data">Main Prompt</FieldLabel>
+              <FieldLabel>Main Prompt</FieldLabel>
               <Textarea
                 value={data.prompt}
                 onChange={e => onChange({ prompt: e.target.value })}
-                placeholder="Enter prompt..."
+                placeholder="Describe exactly what this Claude node should do..."
               />
             </div>
 
             <div className="config-field">
-              <FieldLabel>System Prompt (appended)</FieldLabel>
+              <FieldLabel hint="appended after Noude system context">System Prompt</FieldLabel>
               <Textarea
                 value={data.appendSystemPrompt}
                 onChange={e => onChange({ appendSystemPrompt: e.target.value })}
-                placeholder="Additional instructions..."
+                placeholder="Additional constraints, style, or safety instructions..."
                 className="config-textarea-sm"
               />
             </div>
@@ -76,45 +135,101 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
       </section>
 
       <section className="config-section">
-        <SectionHeader label="Model & Execution" open={modelOpen} onToggle={() => setModelOpen(!modelOpen)} />
-        {modelOpen && (
+        <SectionHeader label="Runtime" open={runtimeOpen} onToggle={() => setRuntimeOpen(!runtimeOpen)} />
+        {runtimeOpen && (
           <div className="config-section-content">
+            <p className="config-section-description">
+              These fields map directly to Claude Code CLI flags for this node instance.
+            </p>
+
             <div className="config-field">
-              <FieldLabel>Model</FieldLabel>
-              <Select value={data.model} onChange={e => onChange({ model: e.target.value as ClaudeCodeNodeData['model'] })}>
-                <option value="sonnet">Sonnet 4.5</option>
-                <option value="opus">Opus 4.6</option>
-                <option value="haiku">Haiku 4.5</option>
-              </Select>
+              <FieldLabel hint="alias or full model id">Model</FieldLabel>
+              <Input
+                value={data.model}
+                onChange={e => onChange({ model: e.target.value })}
+                placeholder="sonnet"
+                list="claude-model-options"
+              />
+              <datalist id="claude-model-options">
+                {MODEL_SUGGESTIONS.map((model) => (
+                  <option key={model} value={model} />
+                ))}
+              </datalist>
             </div>
 
             <div className="config-field">
               <FieldLabel>Output Format</FieldLabel>
-              <Select value={data.outputFormat} onChange={e => onChange({ outputFormat: e.target.value as ClaudeCodeNodeData['outputFormat'] })}>
-                <option value="json">JSON</option>
+              <Select
+                value={data.outputFormat}
+                onChange={e => onChange({ outputFormat: e.target.value as ClaudeCodeNodeData['outputFormat'] })}
+              >
                 <option value="stream-json">Stream JSON</option>
+                <option value="json">JSON</option>
                 <option value="text">Text</option>
               </Select>
+              <FieldNote>{OUTPUT_FORMAT_HINTS[data.outputFormat]}</FieldNote>
             </div>
 
             <div className="config-field">
               <FieldLabel>Permission Mode</FieldLabel>
-              <Select value={data.permissionMode} onChange={e => onChange({ permissionMode: e.target.value as ClaudeCodeNodeData['permissionMode'] })}>
-                <option value="bypassPermissions">Bypass Permissions</option>
-                <option value="dontAsk">Don't Ask</option>
-                <option value="acceptEdits">Accept Edits</option>
-                <option value="plan">Plan</option>
-                <option value="default">Default</option>
-                <option value="delegate">Delegate</option>
+              <Select
+                value={data.permissionMode}
+                onChange={e => onChange({ permissionMode: e.target.value as ClaudeCodeNodeData['permissionMode'] })}
+              >
+                {PERMISSION_MODE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </Select>
+              <FieldNote>{permissionHint}</FieldNote>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="config-section">
+        <SectionHeader label="Tools & Workspace" open={toolsOpen} onToggle={() => setToolsOpen(!toolsOpen)} />
+        {toolsOpen && (
+          <div className="config-section-content">
+            <div className="config-field">
+              <FieldLabel hint="comma or new line separated">Allowed Tools</FieldLabel>
+              <Input
+                value={joinDelimitedList(data.allowedTools)}
+                onChange={e => onChange({ allowedTools: parseDelimitedList(e.target.value) })}
+                placeholder="Read, Glob, Grep, Bash(git:*)"
+              />
             </div>
 
             <div className="config-field">
-              <FieldLabel>Allowed Tools</FieldLabel>
+              <FieldLabel hint="comma or new line separated">Disallowed Tools</FieldLabel>
               <Input
-                value={data.allowedTools.join(', ')}
-                onChange={e => onChange({ allowedTools: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                placeholder="Read, Bash, Write..."
+                value={joinDelimitedList(data.disallowedTools)}
+                onChange={e => onChange({ disallowedTools: parseDelimitedList(e.target.value) })}
+                placeholder="Write, Edit"
+              />
+            </div>
+
+            <div className="config-field">
+              <FieldLabel>Working Directory</FieldLabel>
+              <div className="config-input-with-action">
+                <Input
+                  value={data.workingDirectory}
+                  onChange={e => onChange({ workingDirectory: e.target.value })}
+                  placeholder="Uses flow workspace when empty"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={pickWorkingDirectory}>
+                  <FolderSearch className="w-3.5 h-3.5" />
+                  Browse
+                </Button>
+              </div>
+            </div>
+
+            <div className="config-field">
+              <FieldLabel hint="each line becomes --add-dir">Additional Dirs</FieldLabel>
+              <Textarea
+                value={data.additionalDirs.join('\n')}
+                onChange={e => onChange({ additionalDirs: parseDelimitedList(e.target.value) })}
+                placeholder="/path/to/shared/context\n/path/to/another/project"
+                className="config-textarea-sm"
               />
             </div>
           </div>
@@ -122,8 +237,8 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
       </section>
 
       <section className="config-section">
-        <SectionHeader label="Advanced" open={advancedOpen} onToggle={() => setAdvancedOpen(!advancedOpen)} />
-        {advancedOpen && (
+        <SectionHeader label="Limits & Session" open={limitsOpen} onToggle={() => setLimitsOpen(!limitsOpen)} />
+        {limitsOpen && (
           <div className="config-section-content">
             <div className="config-grid-two">
               <div className="config-field">
@@ -142,19 +257,10 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
                 <Input
                   type="number"
                   value={data.maxTurns}
-                  onChange={e => onChange({ maxTurns: parseInt(e.target.value) || 0 })}
+                  onChange={e => onChange({ maxTurns: parseInt(e.target.value, 10) || 0 })}
                   min={0}
                 />
               </div>
-            </div>
-
-            <div className="config-field">
-              <FieldLabel>Working Directory</FieldLabel>
-              <Input
-                value={data.workingDirectory}
-                onChange={e => onChange({ workingDirectory: e.target.value })}
-                placeholder="/path/to/project"
-              />
             </div>
 
             <div className="config-field">
@@ -162,7 +268,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               <Input
                 type="number"
                 value={data.timeoutMs}
-                onChange={e => onChange({ timeoutMs: parseInt(e.target.value) || 0 })}
+                onChange={e => onChange({ timeoutMs: parseInt(e.target.value, 10) || 0 })}
                 min={0}
               />
             </div>
@@ -174,9 +280,29 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
                 onChange={v => onChange({ continueSession: v })}
               />
               <SwitchRow
-                label="Enabled"
+                label="Node Enabled"
                 checked={data.enabled}
                 onChange={v => onChange({ enabled: v })}
+              />
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="config-section">
+        <SectionHeader label="Structured Output" open={structuredOpen} onToggle={() => setStructuredOpen(!structuredOpen)} />
+        {structuredOpen && (
+          <div className="config-section-content">
+            <p className="config-section-description">
+              JSON Schema validation is most useful with <strong>Output Format = JSON</strong>.
+            </p>
+            <div className="config-field">
+              <FieldLabel hint="optional">JSON Schema</FieldLabel>
+              <Textarea
+                value={data.jsonSchema ?? ''}
+                onChange={e => onChange({ jsonSchema: e.target.value || undefined })}
+                placeholder='{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}'
+                className="config-textarea-sm"
               />
             </div>
           </div>

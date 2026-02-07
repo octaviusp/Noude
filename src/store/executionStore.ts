@@ -653,7 +653,7 @@ async function executeClaudeNode(
 
   return invokeClaude({
     prompt,
-    model: data.model,
+    model: data.model.trim() || undefined,
     outputFormat: data.outputFormat,
     allowedTools: data.allowedTools.length > 0 ? data.allowedTools : undefined,
     disallowedTools: data.disallowedTools.length > 0 ? data.disallowedTools : undefined,
@@ -664,7 +664,7 @@ async function executeClaudeNode(
     additionalDirs: data.additionalDirs.length > 0 ? data.additionalDirs : undefined,
     maxTurns: data.maxTurns > 0 ? data.maxTurns : undefined,
     continueSession: data.continueSession || undefined,
-    jsonSchema: data.jsonSchema,
+    jsonSchema: data.jsonSchema?.trim() || undefined,
     timeoutMs: data.timeoutMs > 0 ? data.timeoutMs : undefined,
   }, onEvent);
 }
