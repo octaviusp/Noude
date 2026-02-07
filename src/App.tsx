@@ -129,8 +129,8 @@ export default function App() {
                   maskColor="rgba(14, 14, 19, 0.75)"
                 />
               )}
-              {isEmpty && <EmptyCanvasState />}
             </ReactFlow>
+            {isEmpty && <EmptyCanvasState />}
           </div>
           {selectedNodeId && <NodeConfigPanel />}
         </div>
