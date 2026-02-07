@@ -76,6 +76,10 @@ export function initAutoPersistence() {
   let timer: ReturnType<typeof setTimeout> | null = null;
 
   useFlowStore.subscribe(() => {
+    // Mark dirty (skip if already dirty to avoid re-trigger loop)
+    if (!useFlowStore.getState().isDirty) {
+      useFlowStore.setState({ isDirty: true });
+    }
     if (timer) clearTimeout(timer);
     timer = setTimeout(saveToLocalStorage, DEBOUNCE_MS);
   });

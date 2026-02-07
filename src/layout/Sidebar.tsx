@@ -28,6 +28,7 @@ function truncatePath(path: string, maxLen = 36): string {
 export function Sidebar() {
   const flowName = useFlowStore(s => s.flowName);
   const setFlowName = useFlowStore(s => s.setFlowName);
+  const isDirty = useFlowStore(s => s.isDirty);
   const addNode = useFlowStore(s => s.addNode);
   const defaults = useFlowStore(s => s.defaults);
   const workingDirectory = defaults.workingDirectory;
@@ -49,12 +50,19 @@ export function Sidebar() {
   const handleSave = () => {
     const flow = useFlowStore.getState().exportToJson();
     downloadFlow(flow);
+    useFlowStore.getState().markClean();
   };
 
   const handleLoad = async () => {
+    const state = useFlowStore.getState();
+    if (state.isDirty && state.nodes.length > 0) {
+      const confirmed = window.confirm('Loading a flow will replace your current unsaved work. Continue?');
+      if (!confirmed) return;
+    }
     try {
       const flow = await loadFlowFromFile();
-      useFlowStore.getState().importFromJson(JSON.stringify(flow));
+      state.importFromJson(JSON.stringify(flow));
+      state.markClean();
     } catch {
       // user cancelled
     }
@@ -185,12 +193,15 @@ export function Sidebar() {
       <div className="sidebar-flow">
         <div className="section-label">Flow</div>
         <div className="sidebar-flow-fields">
-          <input
-            className="sidebar-flow-name"
-            value={flowName}
-            onChange={e => setFlowName(e.target.value)}
-            aria-label="Flow name"
-          />
+          <div className="sidebar-flow-name-row">
+            <input
+              className="sidebar-flow-name"
+              value={flowName}
+              onChange={e => setFlowName(e.target.value)}
+              aria-label="Flow name"
+            />
+            {isDirty && <span className="sidebar-dirty-dot" title="Unsaved changes" />}
+          </div>
 
           <button
             type="button"

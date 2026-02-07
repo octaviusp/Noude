@@ -402,6 +402,21 @@ body {
   gap: 6px;
 }
 
+.sidebar-flow-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-dirty-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 180, 50, 0.85);
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(255, 180, 50, 0.3);
+}
+
 .sidebar-flow-name {
   width: 100%;
   height: 32px;

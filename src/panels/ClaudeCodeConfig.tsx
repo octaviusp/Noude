@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, FolderSearch } from 'lucide-react';
 import type { ClaudeCodeNodeData } from '../types';
 import { pickFolder } from '../lib/tauri';
+import { normalizeModelAlias } from '../lib/model';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -67,17 +68,6 @@ function parseDelimitedList(value: string): string[] {
 
 function joinDelimitedList(values: string[]): string {
   return values.join(', ');
-}
-
-function normalizeModelAlias(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return '';
-
-  const key = trimmed.toLowerCase().replace(/\s+/g, '-');
-  if (key === 'sonnet-latest' || key === 'latest-sonnet' || key === 'claude-sonnet-latest') return 'sonnet';
-  if (key === 'opus-latest' || key === 'latest-opus' || key === 'claude-opus-latest') return 'opus';
-  if (key === 'haiku-latest' || key === 'latest-haiku' || key === 'claude-haiku-latest') return 'haiku';
-  return trimmed;
 }
 
 function SectionHeader({ label, open, onToggle }: { label: string; open: boolean; onToggle: () => void }) {
