@@ -1,7 +1,10 @@
+import type { MouseEvent } from 'react';
 import type { NodeProps } from '@xyflow/react';
 import type { AnyNodeData, ClaudeCodeNodeData } from '../types';
 import { BaseNode } from './BaseNode';
 import { useExecutionStore } from '../store/executionStore';
+import { useFlowStore } from '../store/flowStore';
+import { useUiStore } from '../store/uiStore';
 
 const MODEL_LABELS: Record<string, string> = {
   opus: 'Opus Latest',
@@ -25,9 +28,17 @@ export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
   const status = useExecutionStore(s => s.getNodeStatus(id));
   const liveMetrics = useExecutionStore(s => s.nodeLiveMetrics.get(id));
   const output = useExecutionStore(s => s.getNodeOutput(id));
+  const selectNode = useFlowStore(s => s.selectNode);
+  const setQuickSettings = useUiStore(s => s.setQuickSettings);
   const isActive = status === 'running' || status === 'streaming';
   const prompt = d.prompt.trim();
   const toolsLabel = `${d.allowedTools.length} ${d.allowedTools.length === 1 ? 'tool' : 'tools'}`;
+
+  const openPromptSettings = (event: MouseEvent) => {
+    event.stopPropagation();
+    selectNode(id);
+    setQuickSettings({ nodeId: id, x: event.clientX + 10, y: event.clientY + 10 });
+  };
 
   return (
     <BaseNode id={id} data={data as AnyNodeData} selected={selected} icon="C">
@@ -53,7 +64,12 @@ export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
           )}
         </div>
       )}
-      <div className={['noude-node-summary', !prompt ? 'is-empty' : ''].join(' ').trim()}>{prompt || 'Click to add prompt...'}</div>
+      <div
+        className={['noude-node-summary', !prompt ? 'is-empty' : ''].join(' ').trim()}
+        onClick={!prompt ? openPromptSettings : undefined}
+      >
+        {prompt || 'Click to add prompt...'}
+      </div>
       {output?.meta.costUsd != null && (
         <div className="noude-node-cost">${output.meta.costUsd.toFixed(3)}</div>
       )}

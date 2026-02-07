@@ -1,5 +1,5 @@
 .noude-node {
-  width: 252px;
+  width: 280px;
   background:
     linear-gradient(162deg, rgba(35, 36, 46, 0.94), rgba(19, 20, 29, 0.95)),
     radial-gradient(circle at 10% 2%, rgba(255, 255, 255, 0.06), transparent 56%);
@@ -219,22 +219,32 @@
 }
 
 .noude-node-summary {
-  font-size: 10px;
-  color: var(--text-muted);
+  font-size: 10.5px;
+  color: var(--text-secondary);
   font-family: var(--font-mono);
-  line-height: 1.5;
-  max-height: 32px;
+  line-height: 1.55;
+  max-height: 50px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+}
+
+.noude-node.type-claude-code .noude-node-summary {
+  font-family: var(--font-sans);
 }
 
 .noude-node-summary.is-empty {
   font-style: italic;
   font-family: var(--font-sans);
   color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.14s ease;
+}
+
+.noude-node-summary.is-empty:hover {
+  color: var(--text-muted);
 }
 
 .noude-node-debug-card {
@@ -318,12 +328,12 @@
 }
 
 .noude-node-badge {
-  font-size: 9.5px;
-  padding: 2px 7px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  font-size: 8.5px;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   font-weight: 600;
   letter-spacing: 0;
 }
