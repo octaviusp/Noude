@@ -24,11 +24,27 @@ export function exportFlow(
 }
 
 export function importFlow(json: string): FlowDefinition {
-  const flow = JSON.parse(json) as FlowDefinition;
-  if (flow.version !== 1) {
-    throw new Error(`Unsupported flow version: ${flow.version}`);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error('Invalid JSON: could not parse flow file');
   }
-  return flow;
+
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Flow file must contain a JSON object');
+  }
+
+  const obj = parsed as Record<string, unknown>;
+  if (obj.version !== 1) throw new Error(`Unsupported flow version: ${obj.version}`);
+  if (!Array.isArray(obj.nodes)) throw new Error('Flow is missing "nodes" array');
+  if (!Array.isArray(obj.edges)) throw new Error('Flow is missing "edges" array');
+  if (!obj.viewport || typeof obj.viewport !== 'object') throw new Error('Flow is missing "viewport"');
+  if (typeof obj.name !== 'string' || !obj.name) throw new Error('Flow is missing "name"');
+  if (typeof obj.id !== 'string' || !obj.id) throw new Error('Flow is missing "id"');
+  if (!obj.defaults || typeof obj.defaults !== 'object') throw new Error('Flow is missing "defaults"');
+
+  return obj as unknown as FlowDefinition;
 }
 
 export function downloadFlow(flow: FlowDefinition): void {

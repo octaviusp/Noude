@@ -35,6 +35,7 @@ import {
   parseClaudeStreamChunk,
   parseClaudeStreamResult,
 } from '../lib/claudeStream';
+import { normalizeModelAlias } from '../lib/model';
 import { useFlowStore } from './flowStore';
 
 interface ExecutionState {
@@ -83,21 +84,40 @@ const MAX_STREAMING_CHARS = 102400;
 const MAX_NODE_LOG_EVENTS = 1200;
 const EMPTY_AGENT_LOGS: AgentLogEvent[] = [];
 
+// --- Stream update batching via rAF to reduce Map cloning GC pressure ---
+const streamBatch = new Map<string, string>();
+let streamRafScheduled = false;
+let _streamSetFn: SetFn | null = null;
+
+function flushStreamBatch() {
+  streamRafScheduled = false;
+  if (!_streamSetFn || streamBatch.size === 0) return;
+  const batch = new Map(streamBatch);
+  streamBatch.clear();
+  _streamSetFn((s) => {
+    const next = new Map(s.nodeStreaming);
+    for (const [nodeId, chunk] of batch) {
+      let buf = next.get(nodeId) ?? '';
+      buf += chunk;
+      if (buf.length > MAX_STREAMING_CHARS) buf = buf.slice(-MAX_STREAMING_CHARS);
+      next.set(nodeId, buf);
+    }
+    return { nodeStreaming: next };
+  });
+}
+
 function appendNodeStreaming(
   set: (fn: (s: ExecutionState) => Partial<ExecutionState>) => void,
   nodeId: string,
   line: string,
 ) {
-  set((s) => {
-    const next = new Map(s.nodeStreaming);
-    let buf = next.get(nodeId) ?? '';
-    buf += line.endsWith('\n') ? line : `${line}\n`;
-    if (buf.length > MAX_STREAMING_CHARS) {
-      buf = buf.slice(-MAX_STREAMING_CHARS);
-    }
-    next.set(nodeId, buf);
-    return { nodeStreaming: next };
-  });
+  _streamSetFn = set;
+  const text = line.endsWith('\n') ? line : `${line}\n`;
+  streamBatch.set(nodeId, (streamBatch.get(nodeId) ?? '') + text);
+  if (!streamRafScheduled) {
+    streamRafScheduled = true;
+    requestAnimationFrame(flushStreamBatch);
+  }
 }
 
 function createNodeLogEvent(
@@ -676,16 +696,6 @@ async function executeClaudeNode(
   workingDir: string | undefined,
   onEvent: (event: ProcessEvent) => void,
 ): Promise<string> {
-  const normalizeModel = (value: string): string | undefined => {
-    const trimmed = value.trim();
-    if (!trimmed) return undefined;
-    const key = trimmed.toLowerCase().replace(/\s+/g, '-');
-    if (key === 'sonnet-latest' || key === 'latest-sonnet' || key === 'claude-sonnet-latest') return 'sonnet';
-    if (key === 'opus-latest' || key === 'latest-opus' || key === 'claude-opus-latest') return 'opus';
-    if (key === 'haiku-latest' || key === 'latest-haiku' || key === 'claude-haiku-latest') return 'haiku';
-    return trimmed;
-  };
-
   const prompt = buildClaudePrompt(data.prompt, input);
   const extraPrompt = data.appendSystemPrompt?.trim();
   const systemPrompt = [buildClaudeSystemPrompt(data.label), extraPrompt].filter(Boolean).join('\n\n');
@@ -695,7 +705,7 @@ async function executeClaudeNode(
 
   return invokeClaude({
     prompt,
-    model: normalizeModel(data.model),
+    model: normalizeModelAlias(data.model) || undefined,
     outputFormat: data.outputFormat,
     allowedTools: data.allowedTools.length > 0 ? data.allowedTools : undefined,
     disallowedTools: data.disallowedTools.length > 0 ? data.disallowedTools : undefined,

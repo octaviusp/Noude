@@ -147,6 +147,13 @@ export function BaseNode({ id, data, selected, icon, children }: BaseNodeProps) 
             <div className="dot" />
           </div>
         )}
+        {status === 'error' && output?.error && (
+          <div className="noude-node-error-msg">
+            {output.error.message.length > 80
+              ? `${output.error.message.slice(0, 77)}...`
+              : output.error.message}
+          </div>
+        )}
         {output && output.meta.durationMs > 0 && (
           <div className="noude-node-duration">
             {(output.meta.durationMs / 1000).toFixed(1)}s

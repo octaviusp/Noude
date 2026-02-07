@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { X, Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronRight, FolderSearch } from 'lucide-react';
 import type { BashNodeData } from '../types';
+import { pickFolder } from '../lib/tauri';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select } from '../components/ui/select';
@@ -90,11 +91,20 @@ export function BashConfig({ data, onChange }: Props) {
 
             <div className="config-field">
               <FieldLabel>Working Directory</FieldLabel>
-              <Input
-                value={data.workingDirectory}
-                onChange={e => onChange({ workingDirectory: e.target.value })}
-                placeholder="/path/to/project"
-              />
+              <div className="config-input-with-action">
+                <Input
+                  value={data.workingDirectory}
+                  onChange={e => onChange({ workingDirectory: e.target.value })}
+                  placeholder="Uses flow workspace when empty"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={async () => {
+                  const folder = await pickFolder();
+                  if (folder) onChange({ workingDirectory: folder });
+                }}>
+                  <FolderSearch className="w-3.5 h-3.5" />
+                  Browse
+                </Button>
+              </div>
             </div>
 
             <div className="config-field">
