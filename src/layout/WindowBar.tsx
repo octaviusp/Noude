@@ -34,10 +34,15 @@ export function WindowBar() {
 
   return (
     <header className="noude-window-bar">
+      <div className="window-drag-zone" data-tauri-drag-region>
+        <span className="window-title-mark" />
+        <span className="window-title">Noude</span>
+      </div>
+
       <div className="window-controls" aria-label="Window controls">
         <button
           type="button"
-          className="window-control window-control--minimize"
+          className="window-control"
           onClick={() => handleWindowAction('minimize')}
           disabled={!canControlWindow}
           aria-label="Minimize window"
@@ -46,7 +51,7 @@ export function WindowBar() {
         </button>
         <button
           type="button"
-          className="window-control window-control--maximize"
+          className="window-control"
           onClick={() => handleWindowAction('toggle-maximize')}
           disabled={!canControlWindow}
           aria-label="Toggle maximize"
@@ -62,15 +67,6 @@ export function WindowBar() {
         >
           <X className="window-control-icon" />
         </button>
-      </div>
-
-      <div className="window-drag-zone" data-tauri-drag-region>
-        <span className="window-title">Noude.ai</span>
-      </div>
-
-      <div className="window-bar-meta" data-tauri-drag-region>
-        <span className="window-meta-dot" />
-        <span className="window-meta-label">Flow Studio</span>
       </div>
     </header>
   );

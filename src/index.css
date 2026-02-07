@@ -112,11 +112,11 @@ body {
   display: flex;
   flex-direction: column;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   position: relative;
   overflow: hidden;
-  padding: 8px;
-  gap: 8px;
+  padding: 6px;
+  gap: 6px;
 }
 
 .noude-shell::before {
@@ -133,8 +133,8 @@ body {
 .noude-shell::after {
   content: '';
   position: absolute;
-  inset: 8px;
-  border-radius: 20px;
+  inset: 6px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   pointer-events: none;
@@ -152,24 +152,22 @@ body {
 }
 
 .noude-window-bar {
-  height: 36px;
-  min-height: 36px;
-  border-radius: 12px;
+  height: 30px;
+  min-height: 30px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
-    linear-gradient(180deg, rgba(34, 35, 43, 0.9), rgba(19, 20, 26, 0.9)),
-    linear-gradient(90deg, rgba(91, 111, 255, 0.12), transparent 45%);
+    linear-gradient(180deg, rgba(33, 34, 42, 0.84), rgba(20, 21, 27, 0.84)),
+    linear-gradient(90deg, rgba(91, 111, 255, 0.09), transparent 46%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 10px;
+  gap: 8px;
+  padding: 0 8px 0 9px;
   position: relative;
   z-index: 3;
   overflow: hidden;
-  backdrop-filter: blur(18px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 14px 28px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .noude-window-bar::before {
@@ -183,49 +181,49 @@ body {
 .window-controls {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   position: relative;
   z-index: 2;
+  margin-left: auto;
 }
 
 .window-control {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
+  width: 19px;
+  height: 19px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.76);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast), color var(--motion-fast);
+  transition: transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast), color var(--motion-fast), box-shadow var(--motion-fast);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .window-control-icon {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   opacity: 0.7;
 }
 
-.window-control--minimize {
-  border-color: rgba(246, 193, 94, 0.45);
-  background: rgba(246, 193, 94, 0.22);
-}
-
-.window-control--maximize {
-  border-color: rgba(127, 176, 105, 0.45);
-  background: rgba(127, 176, 105, 0.22);
-}
-
 .window-control--close {
-  border-color: rgba(255, 71, 87, 0.48);
-  background: rgba(255, 71, 87, 0.24);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .window-control:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.04);
-  color: rgba(255, 255, 255, 0.96);
+  transform: translateY(-1px);
+  color: rgba(255, 255, 255, 0.94);
+  border-color: rgba(91, 111, 255, 0.36);
+  background: rgba(91, 111, 255, 0.16);
+  box-shadow: 0 6px 12px rgba(11, 13, 28, 0.32);
+}
+
+.window-control--close:hover:not(:disabled) {
+  border-color: rgba(255, 71, 87, 0.42);
+  background: rgba(255, 71, 87, 0.18);
 }
 
 .window-control:disabled {
@@ -234,46 +232,29 @@ body {
 }
 
 .window-drag-zone {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 7px;
   user-select: none;
+}
+
+.window-title-mark {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 28% 28%, rgba(183, 196, 255, 0.95), rgba(91, 111, 255, 0.9));
+  box-shadow: 0 0 14px rgba(91, 111, 255, 0.45);
 }
 
 .window-title {
   font-family: var(--font-display);
-  font-size: 12px;
-  letter-spacing: -0.015em;
-  color: rgba(255, 255, 255, 0.82);
-  font-weight: 600;
-}
-
-.window-bar-meta {
-  min-width: 108px;
-  height: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  color: var(--text-faint);
-  user-select: none;
-}
-
-.window-meta-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(127, 176, 105, 0.95);
-  box-shadow: 0 0 10px rgba(127, 176, 105, 0.45);
-}
-
-.window-meta-label {
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.78);
   font-weight: 600;
 }
 
@@ -1813,8 +1794,8 @@ body {
   }
 
   .noude-window-bar {
-    height: 34px;
-    min-height: 34px;
+    height: 30px;
+    min-height: 30px;
     border-radius: 0;
     border-top: 0;
     border-left: 0;
@@ -1822,7 +1803,7 @@ body {
     box-shadow: none;
   }
 
-  .window-bar-meta {
+  .window-controls {
     display: none;
   }
 

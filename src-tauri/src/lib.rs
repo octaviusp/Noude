@@ -5,6 +5,7 @@ mod streaming;
 
 use process_manager::ProcessManager;
 use std::sync::Arc;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -14,6 +15,13 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                // Enforce frameless mode at runtime for consistency across dev/build runs.
+                let _ = window.set_decorations(false);
+            }
+            Ok(())
+        })
         .manage(pm)
         .invoke_handler(tauri::generate_handler![
             commands::claude::invoke_claude,
