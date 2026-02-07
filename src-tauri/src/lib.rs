@@ -6,6 +6,8 @@ mod streaming;
 use process_manager::ProcessManager;
 use std::sync::Arc;
 use tauri::Manager;
+#[cfg(target_os = "macos")]
+use tauri::TitleBarStyle;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,8 +19,12 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
-                // Enforce frameless mode at runtime for consistency across dev/build runs.
-                let _ = window.set_decorations(false);
+                #[cfg(target_os = "macos")]
+                {
+                    // Use native macOS traffic lights with integrated overlay titlebar.
+                    let _ = window.set_decorations(true);
+                    let _ = window.set_title_bar_style(TitleBarStyle::Overlay);
+                }
             }
             Ok(())
         })

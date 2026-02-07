@@ -1,28 +1,9 @@
-import { Minus, Square, X } from 'lucide-react';
-
-type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
-
 function isTauriRuntime(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
 
-async function runWindowAction(action: WindowAction): Promise<void> {
-  if (!isTauriRuntime()) return;
-
-  const { getCurrentWindow } = await import('@tauri-apps/api/window');
-  const appWindow = getCurrentWindow();
-
-  if (action === 'minimize') {
-    await appWindow.minimize();
-    return;
-  }
-
-  if (action === 'toggle-maximize') {
-    await appWindow.toggleMaximize();
-    return;
-  }
-
-  await appWindow.close();
+function isMacOS(): boolean {
+  return typeof navigator !== 'undefined' && navigator.userAgent.includes('Mac');
 }
 
 async function startWindowDrag(): Promise<void> {
@@ -34,14 +15,11 @@ async function startWindowDrag(): Promise<void> {
 }
 
 export function WindowBar() {
-  const canControlWindow = isTauriRuntime();
-
-  const handleWindowAction = (action: WindowAction) => {
-    void runWindowAction(action);
-  };
+  const canDragWindow = isTauriRuntime();
+  const isMac = isMacOS();
 
   const handleDragMouseDown = (event: React.MouseEvent<HTMLElement>) => {
-    if (!canControlWindow) return;
+    if (!canDragWindow) return;
     if (event.button !== 0) return;
 
     const target = event.target as HTMLElement | null;
@@ -51,40 +29,15 @@ export function WindowBar() {
   };
 
   return (
-    <header className="noude-window-bar" onMouseDown={handleDragMouseDown} data-tauri-drag-region>
+    <header
+      className={['noude-window-bar', isMac ? 'is-macos' : '']
+        .join(' ')
+        .trim()}
+      onMouseDown={handleDragMouseDown}
+      data-tauri-drag-region
+    >
       <div className="window-drag-zone">
-        <span className="window-title-mark" />
         <span className="window-title">Noude</span>
-      </div>
-
-      <div className="window-controls" aria-label="Window controls">
-        <button
-          type="button"
-          className="window-control"
-          onClick={() => handleWindowAction('minimize')}
-          disabled={!canControlWindow}
-          aria-label="Minimize window"
-        >
-          <Minus className="window-control-icon" />
-        </button>
-        <button
-          type="button"
-          className="window-control"
-          onClick={() => handleWindowAction('toggle-maximize')}
-          disabled={!canControlWindow}
-          aria-label="Toggle maximize"
-        >
-          <Square className="window-control-icon" />
-        </button>
-        <button
-          type="button"
-          className="window-control window-control--close"
-          onClick={() => handleWindowAction('close')}
-          disabled={!canControlWindow}
-          aria-label="Close window"
-        >
-          <X className="window-control-icon" />
-        </button>
       </div>
     </header>
   );

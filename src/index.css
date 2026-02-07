@@ -116,7 +116,7 @@ body {
   position: relative;
   overflow: hidden;
   padding: 6px;
-  gap: 6px;
+  gap: 0;
 }
 
 .noude-shell::before {
@@ -154,20 +154,20 @@ body {
 .noude-window-bar {
   height: 30px;
   min-height: 30px;
-  border-radius: 10px;
+  border-radius: 10px 10px 0 0;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
   background:
-    linear-gradient(180deg, rgba(33, 34, 42, 0.84), rgba(20, 21, 27, 0.84)),
-    linear-gradient(90deg, rgba(91, 111, 255, 0.09), transparent 46%);
+    linear-gradient(180deg, rgba(34, 35, 43, 0.7), rgba(20, 21, 28, 0.46)),
+    linear-gradient(90deg, rgba(91, 111, 255, 0.06), transparent 46%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 8px 0 9px;
+  padding: 0 10px;
   position: relative;
   z-index: 3;
-  overflow: hidden;
+  overflow: clip;
   backdrop-filter: blur(16px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .noude-window-bar::before {
@@ -175,86 +175,29 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(115deg, rgba(255, 255, 255, 0.06), transparent 42%);
-}
-
-.window-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  position: relative;
-  z-index: 2;
-  margin-left: auto;
-}
-
-.window-control {
-  width: 19px;
-  height: 19px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.045);
-  color: rgba(255, 255, 255, 0.76);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast), color var(--motion-fast), box-shadow var(--motion-fast);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.window-control-icon {
-  width: 10px;
-  height: 10px;
-  opacity: 0.7;
-}
-
-.window-control--close {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.window-control:hover:not(:disabled) {
-  transform: translateY(-1px);
-  color: rgba(255, 255, 255, 0.94);
-  border-color: rgba(91, 111, 255, 0.36);
-  background: rgba(91, 111, 255, 0.16);
-  box-shadow: 0 6px 12px rgba(11, 13, 28, 0.32);
-}
-
-.window-control--close:hover:not(:disabled) {
-  border-color: rgba(255, 71, 87, 0.42);
-  background: rgba(255, 71, 87, 0.18);
-}
-
-.window-control:disabled {
-  opacity: 0.45;
-  cursor: default;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.05), transparent 42%);
 }
 
 .window-drag-zone {
-  flex: 0 1 auto;
+  flex: 1;
   min-width: 0;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 7px;
+  padding-left: 8px;
   user-select: none;
 }
 
-.window-title-mark {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 28% 28%, rgba(183, 196, 255, 0.95), rgba(91, 111, 255, 0.9));
-  box-shadow: 0 0 14px rgba(91, 111, 255, 0.45);
+.noude-window-bar.is-macos .window-drag-zone {
+  padding-left: 74px;
 }
 
 .window-title {
   font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.78);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.68);
   font-weight: 600;
 }
 
@@ -285,7 +228,7 @@ body {
   box-shadow: 0 26px 54px rgba(0, 0, 0, 0.5);
   transition: width var(--motion-base) var(--easing-standard), transform var(--motion-slow) var(--easing-standard);
   overflow: hidden;
-  border-radius: 16px 0 0 16px;
+  border-radius: 0 0 0 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -723,7 +666,7 @@ body {
   flex-direction: column;
   position: relative;
   margin: 0;
-  border-radius: 0 16px 16px 0;
+  border-radius: 0 0 16px 0;
   overflow: hidden;
   border-top: 1px solid var(--panel-glass-border);
   border-right: 1px solid var(--panel-glass-border);
@@ -1801,10 +1744,6 @@ body {
     border-left: 0;
     border-right: 0;
     box-shadow: none;
-  }
-
-  .window-controls {
-    display: none;
   }
 
   .app-sidebar {
