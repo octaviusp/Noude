@@ -81,13 +81,13 @@ export function CanvasCommandBar({ onOpenSidebar }: CanvasCommandBarProps) {
       <div className="commandbar-divider" />
 
       <div className="commandbar-group">
-        <button type="button" className="commandbar-icon-btn" onClick={() => addNode('claude-code')} title="Add Claude node">
+        <button type="button" className="commandbar-icon-btn" onClick={() => addNode('claude-code')} title="Add Claude node" aria-label="Add Claude node">
           <Sparkles className="commandbar-btn-icon" />
         </button>
-        <button type="button" className="commandbar-icon-btn" onClick={() => addNode('bash')} title="Add Bash node">
+        <button type="button" className="commandbar-icon-btn" onClick={() => addNode('bash')} title="Add Bash node" aria-label="Add Bash node">
           <Terminal className="commandbar-btn-icon" />
         </button>
-        <button type="button" className="commandbar-icon-btn" onClick={autoLayout} title="Auto layout">
+        <button type="button" className="commandbar-icon-btn" onClick={autoLayout} title="Auto layout (⌘L)" aria-label="Auto layout">
           <LayoutGrid className="commandbar-btn-icon" />
         </button>
       </div>
@@ -95,13 +95,13 @@ export function CanvasCommandBar({ onOpenSidebar }: CanvasCommandBarProps) {
       <div className="commandbar-divider" />
 
       <div className="commandbar-group">
-        <button type="button" className="commandbar-icon-btn" onClick={handleSave} title="Save flow">
+        <button type="button" className="commandbar-icon-btn" onClick={handleSave} title="Save flow (⌘S)" aria-label="Save flow">
           <Save className="commandbar-btn-icon" />
         </button>
-        <button type="button" className="commandbar-icon-btn" onClick={handleLoad} title="Load flow">
+        <button type="button" className="commandbar-icon-btn" onClick={handleLoad} title="Load flow" aria-label="Load flow">
           <Upload className="commandbar-btn-icon" />
         </button>
-        <button type="button" className="commandbar-icon-btn" onClick={handlePickWorkspace} title={workingDirectory || 'Set workspace'}>
+        <button type="button" className="commandbar-icon-btn" onClick={handlePickWorkspace} title={workingDirectory || 'Set workspace'} aria-label="Set workspace">
           <FolderOpen className="commandbar-btn-icon" />
         </button>
       </div>
@@ -109,10 +109,10 @@ export function CanvasCommandBar({ onOpenSidebar }: CanvasCommandBarProps) {
       <div className="commandbar-divider" />
 
       <div className="commandbar-group">
-        <button type="button" className="commandbar-icon-btn" onClick={() => setOutputCollapsed(!outputCollapsed)} title={outputCollapsed ? 'Show logs' : 'Hide logs'}>
+        <button type="button" className="commandbar-icon-btn" onClick={() => setOutputCollapsed(!outputCollapsed)} title={outputCollapsed ? 'Show logs' : 'Hide logs'} aria-label={outputCollapsed ? 'Show logs' : 'Hide logs'}>
           <Activity className="commandbar-btn-icon" />
         </button>
-        <button type="button" className="commandbar-icon-btn" onClick={() => setActionPaletteOpen(true)} title="Open command palette (Cmd/Ctrl+K)">
+        <button type="button" className="commandbar-icon-btn" onClick={() => setActionPaletteOpen(true)} title="Command Palette (⌘K)" aria-label="Open command palette">
           <Search className="commandbar-btn-icon" />
         </button>
       </div>
@@ -127,6 +127,8 @@ export function CanvasCommandBar({ onOpenSidebar }: CanvasCommandBarProps) {
         type="button"
         className={['commandbar-run-btn', isRunning ? 'is-running' : ''].join(' ').trim()}
         onClick={() => { if (isRunning) { stop(); } else { run(); } }}
+        title={isRunning ? 'Stop flow' : 'Run flow (⌘Enter)'}
+        aria-label={isRunning ? 'Stop flow' : 'Run flow'}
       >
         {isRunning ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
         {isRunning ? 'Stop' : 'Run'}

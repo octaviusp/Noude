@@ -108,27 +108,27 @@ export function Sidebar() {
         <div className="sidebar-rail">
           <div className="rail-logo">N</div>
           <div className="rail-separator" />
-          <button type="button" className="rail-btn" onClick={() => addNode('claude-code')} title="Add Claude node">
+          <button type="button" className="rail-btn" onClick={() => addNode('claude-code')} title="Add Claude Node" aria-label="Add Claude Node">
             <Sparkles className="rail-icon" />
           </button>
-          <button type="button" className="rail-btn" onClick={() => addNode('bash')} title="Add Bash node">
+          <button type="button" className="rail-btn" onClick={() => addNode('bash')} title="Add Bash Node" aria-label="Add Bash Node">
             <Terminal className="rail-icon" />
           </button>
           <div className="rail-separator" />
-          <button type="button" className="rail-btn" onClick={autoLayout} title="Auto Layout">
+          <button type="button" className="rail-btn" onClick={autoLayout} title="Auto Layout" aria-label="Auto Layout">
             <LayoutGrid className="rail-icon" />
           </button>
-          <button type="button" className="rail-btn" onClick={handleSave} title="Save flow">
+          <button type="button" className="rail-btn" onClick={handleSave} title="Save Flow" aria-label="Save Flow">
             <Save className="rail-icon" />
           </button>
-          <button type="button" className="rail-btn" onClick={handleLoad} title="Load flow">
+          <button type="button" className="rail-btn" onClick={handleLoad} title="Load Flow" aria-label="Load Flow">
             <Upload className="rail-icon" />
           </button>
-          <button type="button" className="rail-btn" onClick={handlePickWorkspace} title={workingDirectory || 'Set workspace'}>
+          <button type="button" className="rail-btn" onClick={handlePickWorkspace} title={workingDirectory || 'Set Workspace'} aria-label="Set Workspace">
             <FolderOpen className="rail-icon" />
           </button>
           <div className="rail-separator" />
-          <button type="button" className="rail-btn" onClick={toggleSidebarCollapsed} title="Expand sidebar">
+          <button type="button" className="rail-btn" onClick={toggleSidebarCollapsed} title="Expand Sidebar" aria-label="Expand Sidebar">
             <ChevronRight className="rail-icon" />
           </button>
         </div>

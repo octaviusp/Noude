@@ -43,11 +43,13 @@ export function NodeContextMenu() {
       <section
         className="node-context-menu"
         style={{ left: position.left, top: position.top }}
-        aria-label="Node context menu"
+        role="menu"
+        aria-label={`Context menu for ${node.data.label}`}
       >
         <div className="node-context-title">{node.data.label}</div>
         <button
           type="button"
+          role="menuitem"
           className="node-context-item"
           onClick={() => {
             setNodeContextMenu(null);
@@ -59,6 +61,7 @@ export function NodeContextMenu() {
         </button>
         <button
           type="button"
+          role="menuitem"
           className="node-context-item"
           onClick={() => {
             setNodeContextMenu(null);
@@ -71,6 +74,7 @@ export function NodeContextMenu() {
         {isRunning && (
           <button
             type="button"
+            role="menuitem"
             className="node-context-item"
             onClick={async () => {
               await cancelNode(node.id);
@@ -82,6 +86,7 @@ export function NodeContextMenu() {
         )}
         <button
           type="button"
+          role="menuitem"
           className="node-context-item"
           onClick={() => {
             const copyId = duplicateNode(node.id);
@@ -93,6 +98,7 @@ export function NodeContextMenu() {
         </button>
         <button
           type="button"
+          role="menuitem"
           className="node-context-item is-danger"
           onClick={() => {
             removeNode(node.id);

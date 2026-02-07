@@ -559,7 +559,15 @@ export function OutputPanel() {
           ) : (
             <div className="output-empty">
               <Play className="w-3.5 h-3.5" />
-              <span>{flowStatus === 'idle' ? 'No execution output yet' : 'Awaiting task output...'}</span>
+              <span>{
+                flowStatus !== 'idle'
+                  ? 'Awaiting task output...'
+                  : nodes.length === 0
+                    ? 'Add nodes to your flow to see output here'
+                    : Array.from(nodeStatuses.values()).some(s => s === 'success' || s === 'error')
+                      ? 'No output produced'
+                      : 'Run your flow to see output here'
+              }</span>
             </div>
           )}
 

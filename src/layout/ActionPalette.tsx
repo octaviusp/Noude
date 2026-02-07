@@ -27,6 +27,8 @@ interface ActionItem {
 
 export function ActionPalette() {
   const [query, setQuery] = useState('');
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const open = useUiStore(s => s.actionPaletteOpen);
   const setOpen = useUiStore(s => s.setActionPaletteOpen);
   const addNode = useFlowStore(s => s.addNode);
@@ -35,7 +37,11 @@ export function ActionPalette() {
   const { run, stop, isRunning } = useExecution();
 
   useEffect(() => {
-    if (!open) setQuery('');
+    if (!open) {
+      setQuery('');
+      setLoadingId(null);
+      setError(null);
+    }
   }, [open]);
 
   if (!open) return null;
@@ -135,21 +141,35 @@ export function ActionPalette() {
         </div>
 
         <div className="action-palette-list">
+          {error && (
+            <div className="action-palette-error">{error}</div>
+          )}
           {filtered.map((item) => {
             const Icon = item.icon;
+            const isLoading = loadingId === item.id;
             return (
               <button
                 key={item.id}
                 type="button"
-                className="action-palette-item"
+                className={['action-palette-item', isLoading ? 'is-loading' : ''].join(' ').trim()}
+                disabled={loadingId !== null}
                 onClick={async () => {
-                  await item.run();
-                  setOpen(false);
+                  setError(null);
+                  setLoadingId(item.id);
+                  try {
+                    await item.run();
+                    setOpen(false);
+                  } catch (err) {
+                    const message = err instanceof Error ? err.message : 'Action failed';
+                    setError(message);
+                  } finally {
+                    setLoadingId(null);
+                  }
                 }}
               >
                 <Icon className="w-4 h-4" />
                 <span className="action-palette-item-label">{item.label}</span>
-                <span className="action-palette-item-hint">{item.hint}</span>
+                <span className="action-palette-item-hint">{isLoading ? 'Running...' : item.hint}</span>
               </button>
             );
           })}
