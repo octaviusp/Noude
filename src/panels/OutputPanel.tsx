@@ -347,7 +347,7 @@ export function OutputPanel() {
 
       {!collapsed && (
         <div ref={bodyRef} className="output-body" onScroll={handleBodyScroll}>
-          {claudeNodes.length > 0 && (
+          {claudeNodes.length > 1 && (
             <div className="output-node-tabs">
               {claudeNodes.map((node) => {
                 const tabStatus = nodeStatuses.get(node.id) ?? 'idle';
