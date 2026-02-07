@@ -25,6 +25,14 @@ async function runWindowAction(action: WindowAction): Promise<void> {
   await appWindow.close();
 }
 
+async function startWindowDrag(): Promise<void> {
+  if (!isTauriRuntime()) return;
+
+  const { getCurrentWindow } = await import('@tauri-apps/api/window');
+  const appWindow = getCurrentWindow();
+  await appWindow.startDragging();
+}
+
 export function WindowBar() {
   const canControlWindow = isTauriRuntime();
 
@@ -32,9 +40,19 @@ export function WindowBar() {
     void runWindowAction(action);
   };
 
+  const handleDragMouseDown = (event: React.MouseEvent<HTMLElement>) => {
+    if (!canControlWindow) return;
+    if (event.button !== 0) return;
+
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, a, input, textarea, select')) return;
+
+    void startWindowDrag();
+  };
+
   return (
-    <header className="noude-window-bar">
-      <div className="window-drag-zone" data-tauri-drag-region>
+    <header className="noude-window-bar" onMouseDown={handleDragMouseDown} data-tauri-drag-region>
+      <div className="window-drag-zone">
         <span className="window-title-mark" />
         <span className="window-title">Noude</span>
       </div>
