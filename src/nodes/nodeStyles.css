@@ -386,6 +386,31 @@
   filter: drop-shadow(0 0 3px rgba(91, 111, 255, 0.5));
 }
 
+.noude-edge-delete-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 71, 87, 0.5);
+  background: rgba(28, 29, 38, 0.95);
+  color: rgba(255, 71, 87, 0.9);
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: all 0.14s ease;
+  z-index: 10;
+}
+
+.noude-edge-delete-btn:hover {
+  background: rgba(255, 71, 87, 0.2);
+  border-color: rgba(255, 71, 87, 0.8);
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
 .noude-node-streaming {
   display: flex;
   align-items: center;

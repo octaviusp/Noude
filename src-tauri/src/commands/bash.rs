@@ -9,6 +9,21 @@ use tokio::io::AsyncBufReadExt;
 use tokio::sync::watch;
 use uuid::Uuid;
 
+#[cfg(unix)]
+async fn kill_process_tree(child: &mut tokio::process::Child) {
+    if let Some(pid) = child.id() {
+        unsafe { libc::killpg(pid as libc::pid_t, libc::SIGTERM); }
+        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        unsafe { libc::killpg(pid as libc::pid_t, libc::SIGKILL); }
+    }
+    let _ = child.kill().await;
+}
+
+#[cfg(not(unix))]
+async fn kill_process_tree(child: &mut tokio::process::Child) {
+    let _ = child.kill().await;
+}
+
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BashInvokeArgs {
@@ -42,6 +57,10 @@ pub async fn invoke_bash(
 
     cmd.stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped());
+
+    // Create a new process group so we can kill the entire tree
+    #[cfg(unix)]
+    cmd.process_group(0);
 
     let mut child = cmd
         .spawn()
@@ -135,7 +154,7 @@ pub async fn invoke_bash(
                 }
                 _ = cancel_rx.changed() => {
                     if *cancel_rx.borrow() {
-                        let _ = child.kill().await;
+                        kill_process_tree(&mut child).await;
                         let _ = on_event_clone.send(ProcessEvent::Cancelled {
                             process_id: pid_clone.clone(),
                         });
@@ -145,7 +164,7 @@ pub async fn invoke_bash(
                 }
                 timed_out = &mut timeout_fut => {
                     if timed_out {
-                        let _ = child.kill().await;
+                        kill_process_tree(&mut child).await;
                         let _ = on_event_clone.send(ProcessEvent::Error {
                             process_id: pid_clone.clone(),
                             message: "Process timed out".to_string(),

@@ -8,6 +8,26 @@ use tokio::io::AsyncBufReadExt;
 use tokio::sync::watch;
 use uuid::Uuid;
 
+/// Kill entire process group (child + all descendants) on unix.
+/// Falls back to child.kill() on non-unix or if killpg fails.
+#[cfg(unix)]
+async fn kill_process_tree(child: &mut tokio::process::Child) {
+    if let Some(pid) = child.id() {
+        // Send SIGTERM to the process group first
+        unsafe { libc::killpg(pid as libc::pid_t, libc::SIGTERM); }
+        // Give processes a moment to exit gracefully
+        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        // Force kill with SIGKILL
+        unsafe { libc::killpg(pid as libc::pid_t, libc::SIGKILL); }
+    }
+    let _ = child.kill().await;
+}
+
+#[cfg(not(unix))]
+async fn kill_process_tree(child: &mut tokio::process::Child) {
+    let _ = child.kill().await;
+}
+
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClaudeInvokeArgs {
@@ -133,11 +153,17 @@ pub async fn invoke_claude(
         .clone()
         .unwrap_or_else(|| std::env::current_dir().unwrap().to_string_lossy().to_string());
 
-    let mut child = tokio::process::Command::new("claude")
-        .args(&cmd_args)
+    let mut cmd = tokio::process::Command::new("claude");
+    cmd.args(&cmd_args)
         .current_dir(&working_dir)
         .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+
+    // Create a new process group so we can kill the entire tree
+    #[cfg(unix)]
+    cmd.process_group(0);
+
+    let mut child = cmd
         .spawn()
         .map_err(|e| AppError::Process(format!("Failed to spawn claude: {}", e)))?;
 
@@ -229,7 +255,7 @@ pub async fn invoke_claude(
                 }
                 _ = cancel_rx.changed() => {
                     if *cancel_rx.borrow() {
-                        let _ = child.kill().await;
+                        kill_process_tree(&mut child).await;
                         let _ = on_event_clone.send(ProcessEvent::Cancelled {
                             process_id: pid_clone.clone(),
                         });
@@ -239,7 +265,7 @@ pub async fn invoke_claude(
                 }
                 timed_out = &mut timeout_fut => {
                     if timed_out {
-                        let _ = child.kill().await;
+                        kill_process_tree(&mut child).await;
                         let _ = on_event_clone.send(ProcessEvent::Error {
                             process_id: pid_clone.clone(),
                             message: "Process timed out".to_string(),

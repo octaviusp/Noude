@@ -3,13 +3,16 @@ import {
   ChevronRight,
   FolderOpen,
   LayoutGrid,
+  Play,
   Save,
   Sparkles,
+  Square,
   Terminal,
   Upload,
   X,
 } from 'lucide-react';
 import { useAutoLayout } from '../hooks/useAutoLayout';
+import { useExecution } from '../hooks/useExecution';
 import { useFlowStore } from '../store/flowStore';
 import { useUiStore } from '../store/uiStore';
 import { downloadFlow, loadFlowFromFile } from '../lib/serialization';
@@ -26,13 +29,15 @@ export function Sidebar() {
   const flowName = useFlowStore(s => s.flowName);
   const setFlowName = useFlowStore(s => s.setFlowName);
   const addNode = useFlowStore(s => s.addNode);
-  const workingDirectory = useFlowStore(s => s.defaults.workingDirectory);
+  const defaults = useFlowStore(s => s.defaults);
+  const workingDirectory = defaults.workingDirectory;
   const setDefaults = useFlowStore(s => s.setDefaults);
   const sidebarCollapsed = useUiStore(s => s.sidebarCollapsed);
   const sidebarMobileOpen = useUiStore(s => s.sidebarMobileOpen);
   const toggleSidebarCollapsed = useUiStore(s => s.toggleSidebarCollapsed);
   const setSidebarMobileOpen = useUiStore(s => s.setSidebarMobileOpen);
   const autoLayout = useAutoLayout();
+  const { run, stop, isRunning } = useExecution();
 
   const handlePickWorkspace = async () => {
     const folder = await pickFolder();
@@ -128,6 +133,16 @@ export function Sidebar() {
             <FolderOpen className="rail-icon" />
           </button>
           <div className="rail-separator" />
+          <button
+            type="button"
+            className={['rail-btn', isRunning ? 'is-running' : ''].join(' ').trim()}
+            onClick={() => { if (isRunning) { stop(); } else { run(); } }}
+            title={isRunning ? 'Stop Flow' : 'Run Flow'}
+            aria-label={isRunning ? 'Stop Flow' : 'Run Flow'}
+          >
+            {isRunning ? <Square className="rail-icon" /> : <Play className="rail-icon" />}
+          </button>
+          <div className="rail-separator" />
           <button type="button" className="rail-btn" onClick={toggleSidebarCollapsed} title="Expand Sidebar" aria-label="Expand Sidebar">
             <ChevronRight className="rail-icon" />
           </button>
@@ -196,6 +211,46 @@ export function Sidebar() {
         </div>
       </div>
 
+      <div className="sidebar-flow">
+        <div className="section-label">Settings</div>
+        <div className="sidebar-flow-fields">
+          <label className="sidebar-setting">
+            <span className="sidebar-setting-label">Concurrency</span>
+            <input
+              type="number"
+              className="sidebar-setting-input"
+              min={1}
+              max={20}
+              value={defaults.maxConcurrency}
+              onChange={e => setDefaults({ maxConcurrency: Math.max(1, parseInt(e.target.value) || 1) })}
+              aria-label="Max concurrency"
+            />
+          </label>
+          <label className="sidebar-setting">
+            <span className="sidebar-setting-label">Iteration limit</span>
+            <input
+              type="number"
+              className="sidebar-setting-input"
+              min={1}
+              max={100}
+              value={defaults.globalIterationLimit}
+              onChange={e => setDefaults({ globalIterationLimit: Math.max(1, parseInt(e.target.value) || 1) })}
+              aria-label="Global iteration limit"
+            />
+          </label>
+          <label className="sidebar-setting">
+            <span className="sidebar-setting-label">Stop on error</span>
+            <input
+              type="checkbox"
+              className="sidebar-setting-checkbox"
+              checked={defaults.stopOnError}
+              onChange={e => setDefaults({ stopOnError: e.target.checked })}
+              aria-label="Stop on error"
+            />
+          </label>
+        </div>
+      </div>
+
       <div className="nav-section">
         <div className="section-label">Build</div>
         {actions.map(action => {
@@ -217,6 +272,25 @@ export function Sidebar() {
             </button>
           );
         })}
+      </div>
+
+      <div className="nav-section">
+        <div className="section-label">Execute</div>
+        <button
+          type="button"
+          className={['nav-item', isRunning ? 'is-running' : ''].join(' ').trim()}
+          onClick={() => {
+            if (isRunning) { stop(); } else { run(); }
+            closeMobile();
+          }}
+          title={isRunning ? 'Stop Flow' : 'Run Flow (⌘Enter)'}
+        >
+          {isRunning
+            ? <Square className="nav-icon" />
+            : <Play className="nav-icon" />
+          }
+          <span className="nav-label">{isRunning ? 'Stop Flow' : 'Run Flow'}</span>
+        </button>
       </div>
     </aside>
   );

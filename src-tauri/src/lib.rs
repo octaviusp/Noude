@@ -5,13 +5,14 @@ mod streaming;
 
 use process_manager::ProcessManager;
 use std::sync::Arc;
-use tauri::Manager;
+use tauri::{Manager, RunEvent};
 #[cfg(target_os = "macos")]
 use tauri::TitleBarStyle;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let pm = Arc::new(ProcessManager::new());
+    let pm_cleanup = Arc::clone(&pm);
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -35,6 +36,11 @@ pub fn run() {
             commands::process::cancel_process,
             commands::process::cancel_all_processes,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(move |_app, event| {
+            if let RunEvent::Exit = event {
+                pm_cleanup.cancel_all();
+            }
+        });
 }
