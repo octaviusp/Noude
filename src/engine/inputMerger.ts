@@ -29,11 +29,29 @@ export function mergeInputs(
     if (output.status === 'error') hasErrors = true;
 
     const label = nodeLabels.get(edge.source) || output.nodeLabel;
-    textParts.push(`--- Output from ${label} (${output.nodeType}) ---\n${output.result.text}`);
+    const statusLine = output.status === 'error' ? 'Status: error' : 'Status: success';
+    const exitLine = output.result.exitCode != null ? `Exit Code: ${output.result.exitCode}` : '';
+    const durationLine = output.meta.durationMs ? `Duration: ${output.meta.durationMs}ms` : '';
 
-    if (output.result.data) {
-      combinedData[edge.source] = output.result.data;
-    }
+    const header = [
+      `=== Upstream Node: "${label}" ===`,
+      `Type: ${output.nodeType}`,
+      statusLine,
+      exitLine,
+      durationLine,
+    ].filter(Boolean).join('\n');
+
+    textParts.push(`${header}\n\n--- Output ---\n${output.result.text}`);
+
+    combinedData[edge.source] = {
+      nodeLabel: label,
+      nodeType: output.nodeType,
+      status: output.status,
+      exitCode: output.result.exitCode,
+      durationMs: output.meta.durationMs,
+      text: output.result.text,
+      ...(output.result.data ? { data: output.result.data } : {}),
+    };
   }
 
   return {

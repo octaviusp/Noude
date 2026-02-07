@@ -430,19 +430,22 @@ async function executeNode(
         break;
       case 'stdout':
         setNodeStatus(set, nodeId, 'streaming');
-        appendNodeStreaming(set, nodeId, event.chunk ?? '');
 
-        // Parse stream-json events for live tracking and structured logs.
         if (data.nodeType === 'claude-code' && (data as ClaudeCodeNodeData).outputFormat === 'stream-json') {
+          // Don't dump raw JSON into streaming buffer — parse it into structured events
           parseStreamChunk(nodeId, event.chunk ?? '', set, get);
-        } else if (event.chunk) {
-          appendNodeLogEvent(set, nodeId, {
-            kind: 'stdout',
-            level: 'info',
-            title: 'stdout',
-            summary: event.chunk,
-            raw: event.chunk,
-          });
+        } else {
+          // For bash and non-stream-json claude, raw stdout IS the meaningful output
+          appendNodeStreaming(set, nodeId, event.chunk ?? '');
+          if (event.chunk) {
+            appendNodeLogEvent(set, nodeId, {
+              kind: 'stdout',
+              level: 'info',
+              title: 'stdout',
+              summary: event.chunk.length > 200 ? event.chunk.slice(0, 197) + '...' : event.chunk,
+              raw: event.chunk,
+            });
+          }
         }
         break;
       case 'stderr':
@@ -763,6 +766,10 @@ function handleParsedStreamMessage(
         : 'completed'
       : undefined,
   });
+
+  if (message.assistantText) {
+    appendNodeStreaming(set, nodeId, message.assistantText);
+  }
 
   if (message.assistantTurn) {
     set((s) => {

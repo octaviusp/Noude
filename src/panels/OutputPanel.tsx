@@ -208,45 +208,51 @@ export function OutputPanel() {
   const prevFlowStatusRef = useRef(flowStatus);
   const sawNodeErrorRef = useRef(false);
 
-  const claudeNodes = useMemo(
+  const executionNodes = useMemo(
     () => nodes
-      .filter(n => n.data.nodeType === 'claude-code')
-      .map(n => ({ id: n.id, label: n.data.label })),
+      .filter(n => n.data.nodeType === 'claude-code' || n.data.nodeType === 'bash')
+      .map(n => ({ id: n.id, label: n.data.label, nodeType: n.data.nodeType })),
     [nodes]
   );
 
   const selectedNode = selectedNodeId ? nodes.find(n => n.id === selectedNodeId) : undefined;
-  const selectedIsClaude = selectedNode?.data.nodeType === 'claude-code';
+  const selectedIsExecutionNode = selectedNode ? (selectedNode.data.nodeType === 'claude-code' || selectedNode.data.nodeType === 'bash') : false;
   const hasNodeErrors = useMemo(
     () => Array.from(nodeStatuses.values()).some((status) => status === 'error'),
     [nodeStatuses]
   );
 
   useEffect(() => {
-    if (selectedNodeId && selectedIsClaude) {
+    if (selectedNodeId && selectedIsExecutionNode) {
       setActiveNodeId(selectedNodeId);
     }
-  }, [selectedNodeId, selectedIsClaude]);
+  }, [selectedNodeId, selectedIsExecutionNode]);
 
   useEffect(() => {
-    if (activeNodeId && claudeNodes.some(n => n.id === activeNodeId)) return;
-    setActiveNodeId(claudeNodes[0]?.id ?? null);
-  }, [activeNodeId, claudeNodes]);
+    if (activeNodeId && executionNodes.some(n => n.id === activeNodeId)) return;
+    setActiveNodeId(executionNodes[0]?.id ?? null);
+  }, [activeNodeId, executionNodes]);
 
   let displayNodeId: string | null = null;
-  if (selectedNodeId && selectedIsClaude) {
+  if (selectedNodeId && selectedIsExecutionNode) {
     displayNodeId = selectedNodeId;
   } else if (activeNodeId) {
     displayNodeId = activeNodeId;
-  } else if (selectedNodeId && !selectedIsClaude) {
-    displayNodeId = selectedNodeId;
   } else {
-    const runningClaude = claudeNodes.find(n => {
+    const runningNode = executionNodes.find(n => {
       const status = nodeStatuses.get(n.id);
       return status === 'running' || status === 'streaming';
     });
-    displayNodeId = runningClaude?.id ?? claudeNodes[0]?.id ?? null;
+    displayNodeId = runningNode?.id ?? executionNodes[0]?.id ?? null;
   }
+
+  const displayNodeType = displayNodeId ? nodes.find(n => n.id === displayNodeId)?.data.nodeType : undefined;
+
+  useEffect(() => {
+    if (displayNodeType === 'bash' && (filter === 'assistant' || filter === 'tools')) {
+      setFilter('all');
+    }
+  }, [displayNodeType]);
 
   const streaming = useExecutionStore(s => displayNodeId ? s.getNodeStreaming(displayNodeId) : '');
   const output = useExecutionStore(s => displayNodeId ? s.getNodeOutput(displayNodeId) : undefined);
@@ -402,9 +408,9 @@ export function OutputPanel() {
 
       {!collapsed && (
         <div ref={bodyRef} className="output-body" onScroll={handleBodyScroll}>
-          {claudeNodes.length > 1 && (
+          {executionNodes.length > 1 && (
             <div className="output-node-tabs">
-              {claudeNodes.map((node) => {
+              {executionNodes.map((node) => {
                 const tabStatus = nodeStatuses.get(node.id) ?? 'idle';
                 return (
                   <button
