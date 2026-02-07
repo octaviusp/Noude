@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# Tauri / Rust
+target/
+
+# Vite
+.vite/
+
+# Environment
+.env
+.env.*
+
+# Build artifacts
+*.dmg
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
