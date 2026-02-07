@@ -1,30 +1,41 @@
 .noude-node {
-  width: 272px;
-  background: linear-gradient(170deg, var(--bg-tertiary), rgba(53, 53, 61, 0.72));
-  border: 1px solid var(--border-default);
-  border-radius: 16px;
+  width: 232px;
+  background:
+    linear-gradient(164deg, rgba(43, 44, 54, 0.92), rgba(25, 26, 33, 0.92)),
+    radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.12), transparent 56%);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 14px;
   box-shadow: var(--shadow-md);
   overflow: hidden;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  position: relative;
+}
+
+.noude-node::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.045), transparent 40%);
 }
 
 .noude-node:hover {
-  transform: translateY(-3px);
-  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow: var(--shadow-lg);
 }
 
 .noude-node.selected {
   border-color: rgba(91, 111, 255, 0.5);
-  box-shadow: 0 0 0 3px rgba(91, 111, 255, 0.15), var(--shadow-lg);
+  box-shadow: 0 0 0 2px rgba(91, 111, 255, 0.22), var(--shadow-lg);
 }
 
 .noude-node-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 9px 10px;
   border-bottom: 1px solid var(--border-subtle);
   position: relative;
 }
@@ -34,7 +45,7 @@
   position: absolute;
   inset: 0 auto auto 0;
   width: 100%;
-  height: 3px;
+  height: 2px;
 }
 
 .noude-node.type-claude-code .noude-node-header::before {
@@ -46,13 +57,13 @@
 }
 
 .noude-node-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -70,7 +81,7 @@
 .noude-node-label {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-strong);
   overflow: hidden;
@@ -79,8 +90,8 @@
 }
 
 .noude-node-status {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -103,18 +114,18 @@
 .noude-node-status.skipped { background: var(--status-cancelled); }
 
 .noude-node-body {
-  padding: 12px 14px;
+  padding: 9px 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .noude-node-preview {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
   font-family: var(--font-mono);
-  line-height: 1.45;
-  max-height: 50px;
+  line-height: 1.4;
+  max-height: 42px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -124,13 +135,13 @@
 
 .noude-node-badges {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .noude-node-badge {
-  font-size: 10px;
-  padding: 3px 7px;
+  font-size: 9px;
+  padding: 2px 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
@@ -159,14 +170,14 @@
 .noude-node-duration,
 .noude-node-cost,
 .noude-node-live-metrics {
-  font-size: 10px;
+  font-size: 9px;
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
 
 .noude-node-duration {
   text-align: right;
-  padding-top: 6px;
+  padding-top: 5px;
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -177,7 +188,7 @@
 
 .noude-node-live-metrics {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 
 .noude-tool-indicator {
@@ -186,8 +197,8 @@
 }
 
 .noude-handle {
-  width: 10px !important;
-  height: 10px !important;
+  width: 8px !important;
+  height: 8px !important;
   background: var(--bg-secondary) !important;
   border: 2px solid var(--border-default) !important;
   border-radius: 999px !important;
@@ -252,11 +263,11 @@
 }
 
 .sub-agent-node {
-  width: 170px;
-  background: rgba(45, 45, 51, 0.9);
+  width: 152px;
+  background: rgba(36, 37, 46, 0.88);
   border: 1px solid rgba(91, 111, 255, 0.24);
-  border-radius: 12px;
-  padding: 10px 11px;
+  border-radius: 10px;
+  padding: 8px 9px;
   animation: subAgentSpawn 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(8px);
@@ -279,16 +290,16 @@
 .sub-agent-header {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 
 .sub-agent-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
   background: rgba(91, 111, 255, 0.15);
   color: var(--accent-blue);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -298,7 +309,7 @@
 .sub-agent-name {
   flex: 1;
   min-width: 0;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-strong);
   overflow: hidden;
@@ -307,8 +318,8 @@
 }
 
 .sub-agent-desc {
-  margin-top: 5px;
-  font-size: 10px;
+  margin-top: 4px;
+  font-size: 9px;
   color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;

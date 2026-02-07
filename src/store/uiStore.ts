@@ -12,7 +12,7 @@ interface UiState {
   setOutputHeight: (height: number) => void;
 }
 
-const DEFAULT_OUTPUT_HEIGHT = 250;
+const DEFAULT_OUTPUT_HEIGHT = 190;
 
 export const useUiStore = create<UiState>((set) => ({
   sidebarCollapsed: false,

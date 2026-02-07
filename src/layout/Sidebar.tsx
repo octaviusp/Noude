@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -31,6 +31,7 @@ function truncatePath(path: string, maxLen = 36): string {
 
 export function Sidebar() {
   const [query, setQuery] = useState('');
+  const [activeActionId, setActiveActionId] = useState('add-claude');
   const [profileExpanded, setProfileExpanded] = useState(false);
   const flowName = useFlowStore(s => s.flowName);
   const setFlowName = useFlowStore(s => s.setFlowName);
@@ -65,46 +66,43 @@ export function Sidebar() {
     }
   };
 
-  const actions = useMemo(
-    () => [
-      {
-        id: 'add-claude',
-        label: 'Add Claude Node',
-        icon: Sparkles,
-        onClick: () => addNode('claude-code'),
-        count: null,
-      },
-      {
-        id: 'add-bash',
-        label: 'Add Bash Node',
-        icon: Terminal,
-        onClick: () => addNode('bash'),
-        count: null,
-      },
-      {
-        id: 'auto-layout',
-        label: 'Auto Layout',
-        icon: LayoutGrid,
-        onClick: autoLayout,
-        count: null,
-      },
-      {
-        id: 'save',
-        label: 'Save Flow',
-        icon: Save,
-        onClick: handleSave,
-        count: null,
-      },
-      {
-        id: 'load',
-        label: 'Load Flow',
-        icon: Upload,
-        onClick: handleLoad,
-        count: null,
-      },
-    ],
-    [addNode, autoLayout]
-  );
+  const actions = [
+    {
+      id: 'add-claude',
+      label: 'Add Claude Node',
+      icon: Sparkles,
+      onClick: () => addNode('claude-code'),
+      count: null,
+    },
+    {
+      id: 'add-bash',
+      label: 'Add Bash Node',
+      icon: Terminal,
+      onClick: () => addNode('bash'),
+      count: null,
+    },
+    {
+      id: 'auto-layout',
+      label: 'Auto Layout',
+      icon: LayoutGrid,
+      onClick: autoLayout,
+      count: null,
+    },
+    {
+      id: 'save',
+      label: 'Save Flow',
+      icon: Save,
+      onClick: handleSave,
+      count: null,
+    },
+    {
+      id: 'load',
+      label: 'Load Flow',
+      icon: Upload,
+      onClick: handleLoad,
+      count: null,
+    },
+  ];
 
   const filteredActions = actions.filter(action =>
     action.label.toLowerCase().includes(query.toLowerCase())
@@ -178,7 +176,11 @@ export function Sidebar() {
 
           <button
             type="button"
-            className="nav-item"
+            className={[
+              'nav-item',
+              'is-context',
+              !workingDirectory ? 'is-alert' : '',
+            ].join(' ').trim()}
             onClick={handlePickWorkspace}
             title={workingDirectory || 'Set workspace directory'}
           >
@@ -202,12 +204,16 @@ export function Sidebar() {
           return (
             <button
               type="button"
-              className="nav-item"
               key={action.id}
               onClick={() => {
+                setActiveActionId(action.id);
                 action.onClick();
                 closeMobile();
               }}
+              className={[
+                'nav-item',
+                action.id === activeActionId ? 'is-active' : '',
+              ].join(' ').trim()}
               title={action.label}
             >
               <Icon className="nav-icon" />

@@ -32,7 +32,7 @@ export function MainWorkspace({ onOpenSidebar, children }: MainWorkspaceProps) {
           </p>
         </div>
 
-        <div className="workspace-header-status" aria-live="polite">
+        <div className={`workspace-header-status is-${flowStatus}`} aria-live="polite">
           <Activity className={`workspace-status-icon ${isRunning ? 'running' : ''}`} />
           <span>{flowStatus}</span>
         </div>
