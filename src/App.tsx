@@ -1,10 +1,11 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
   BackgroundVariant,
+  type ReactFlowInstance,
   type OnSelectionChangeParams,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -66,6 +67,8 @@ export default function App() {
   const selectedNodeId = useFlowStore(s => s.selectedNodeId);
   const sidebarMobileOpen = useUiStore(s => s.sidebarMobileOpen);
   const setSidebarMobileOpen = useUiStore(s => s.setSidebarMobileOpen);
+  const reactFlowRef = useRef<ReactFlowInstance<any, any> | null>(null);
+  const previousNodeCountRef = useRef(nodes.length);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -77,6 +80,23 @@ export default function App() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [setSidebarMobileOpen]);
+
+  useEffect(() => {
+    const previousNodeCount = previousNodeCountRef.current;
+
+    if (previousNodeCount === 0 && nodes.length === 1 && reactFlowRef.current) {
+      window.requestAnimationFrame(() => {
+        reactFlowRef.current?.fitView({
+          duration: 220,
+          padding: 0.24,
+          minZoom: 0.55,
+          maxZoom: 0.82,
+        });
+      });
+    }
+
+    previousNodeCountRef.current = nodes.length;
+  }, [nodes.length]);
 
   const onSelectionChange = useCallback(
     ({ nodes: selected }: OnSelectionChangeParams) => {
@@ -108,10 +128,19 @@ export default function App() {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              onInit={instance => {
+                reactFlowRef.current = instance;
+              }}
               onMoveEnd={(_, viewport) => setViewport(viewport)}
               onSelectionChange={onSelectionChange}
               onPaneClick={() => selectNode(null)}
-              fitView
+              minZoom={0.45}
+              maxZoom={1.25}
+              fitViewOptions={{
+                padding: 0.24,
+                minZoom: 0.55,
+                maxZoom: 0.82,
+              }}
               proOptions={{ hideAttribution: true }}
               defaultEdgeOptions={{ type: 'noude' }}
               colorMode="dark"

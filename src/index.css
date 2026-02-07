@@ -784,8 +784,8 @@ body {
   min-height: 0;
   position: relative;
   background:
-    radial-gradient(circle at 80% 20%, rgba(91, 111, 255, 0.12), transparent 45%),
-    radial-gradient(circle at 18% 82%, rgba(127, 176, 105, 0.06), transparent 42%),
+    radial-gradient(circle at 80% 14%, rgba(91, 111, 255, 0.1), transparent 42%),
+    radial-gradient(circle at 14% 78%, rgba(127, 176, 105, 0.05), transparent 38%),
     var(--bg-primary);
 }
 
@@ -794,7 +794,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.03), transparent 44%);
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.02), transparent 46%);
   z-index: 1;
 }
 
@@ -803,33 +803,34 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.045), transparent 34%);
+  background: radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.03), transparent 30%);
   z-index: 1;
 }
 
 .noude-canvas .react-flow__background {
   background: transparent !important;
+  opacity: 0.9;
 }
 
 .noude-canvas .react-flow__controls {
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  background: rgba(25, 26, 33, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(25, 26, 33, 0.66) !important;
   border-radius: 9px !important;
-  box-shadow: var(--shadow-md) !important;
-  backdrop-filter: blur(14px) !important;
+  box-shadow: var(--shadow-sm) !important;
+  backdrop-filter: blur(12px) !important;
   overflow: hidden;
-  opacity: 0;
-  transform: translateY(8px) scale(0.97);
-  pointer-events: none;
-  transition: opacity var(--motion-fast), transform var(--motion-fast) !important;
+  opacity: 0.74;
+  transform: none;
+  pointer-events: auto;
+  transition: opacity var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast) !important;
 }
 
 .noude-canvas .react-flow__controls-button {
-  width: 26px !important;
-  height: 26px !important;
+  width: 25px !important;
+  height: 25px !important;
   background: transparent !important;
   border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   fill: var(--text-muted) !important;
   transition: background var(--motion-fast), fill var(--motion-fast) !important;
 }
@@ -839,39 +840,44 @@ body {
 }
 
 .noude-canvas .react-flow__controls-button:hover {
-  background: var(--surface-elevated) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
   fill: var(--text-primary) !important;
 }
 
 .noude-canvas .react-flow__minimap {
   border-radius: 9px !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: rgba(22, 23, 29, 0.72) !important;
-  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  background: rgba(22, 23, 29, 0.64) !important;
+  backdrop-filter: blur(10px) !important;
   box-shadow: var(--shadow-sm) !important;
-  opacity: 0;
-  transform: translateY(8px) scale(0.97);
-  pointer-events: none;
-  transition: opacity var(--motion-fast), transform var(--motion-fast) !important;
+  opacity: 0.66;
+  transform: none;
+  pointer-events: auto;
+  transition: opacity var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast) !important;
 }
 
 .noude-canvas:hover .react-flow__controls,
+.noude-canvas:focus-within .react-flow__controls {
+  opacity: 0.98;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(25, 26, 33, 0.78) !important;
+}
+
 .noude-canvas:hover .react-flow__minimap,
-.noude-canvas:focus-within .react-flow__controls,
 .noude-canvas:focus-within .react-flow__minimap {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
+  opacity: 0.9;
+  border-color: rgba(255, 255, 255, 0.13) !important;
+  background: rgba(22, 23, 29, 0.74) !important;
 }
 
 .noude-canvas .react-flow__edge-path {
-  stroke: rgba(255, 255, 255, 0.2) !important;
-  stroke-width: 2 !important;
+  stroke: rgba(255, 255, 255, 0.18) !important;
+  stroke-width: 1.8 !important;
 }
 
 .noude-canvas .react-flow__connection-line {
   stroke: var(--accent-blue) !important;
-  stroke-width: 2.5 !important;
+  stroke-width: 2.2 !important;
   stroke-dasharray: 5 4 !important;
 }
 
