@@ -1,3 +1,5 @@
+import { WindowBar } from './WindowBar';
+
 interface AppShellProps {
   sidebar: React.ReactNode;
   children: React.ReactNode;
@@ -13,8 +15,11 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <div className="noude-shell">
-      {sidebar}
-      <div className="noude-shell-main">{children}</div>
+      <WindowBar />
+      <div className="noude-shell-main">
+        {sidebar}
+        {children}
+      </div>
       {sidebarOpen && (
         <button
           type="button"

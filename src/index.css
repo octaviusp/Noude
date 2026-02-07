@@ -110,11 +110,13 @@ body {
 
 .noude-shell {
   display: flex;
+  flex-direction: column;
   width: 100vw;
   height: 100vh;
   position: relative;
   overflow: hidden;
   padding: 8px;
+  gap: 8px;
 }
 
 .noude-shell::before {
@@ -146,6 +148,133 @@ body {
   display: flex;
   position: relative;
   z-index: 1;
+  gap: 0;
+}
+
+.noude-window-bar {
+  height: 36px;
+  min-height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(34, 35, 43, 0.9), rgba(19, 20, 26, 0.9)),
+    linear-gradient(90deg, rgba(91, 111, 255, 0.12), transparent 45%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  position: relative;
+  z-index: 3;
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 14px 28px rgba(0, 0, 0, 0.34);
+}
+
+.noude-window-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.06), transparent 42%);
+}
+
+.window-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 2;
+}
+
+.window-control {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast), color var(--motion-fast);
+}
+
+.window-control-icon {
+  width: 9px;
+  height: 9px;
+  opacity: 0.7;
+}
+
+.window-control--minimize {
+  border-color: rgba(246, 193, 94, 0.45);
+  background: rgba(246, 193, 94, 0.22);
+}
+
+.window-control--maximize {
+  border-color: rgba(127, 176, 105, 0.45);
+  background: rgba(127, 176, 105, 0.22);
+}
+
+.window-control--close {
+  border-color: rgba(255, 71, 87, 0.48);
+  background: rgba(255, 71, 87, 0.24);
+}
+
+.window-control:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.04);
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.window-control:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.window-drag-zone {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.window-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: -0.015em;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 600;
+}
+
+.window-bar-meta {
+  min-width: 108px;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  color: var(--text-faint);
+  user-select: none;
+}
+
+.window-meta-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(127, 176, 105, 0.95);
+  box-shadow: 0 0 10px rgba(127, 176, 105, 0.45);
+}
+
+.window-meta-label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .noude-sidebar-scrim {
@@ -161,7 +290,7 @@ body {
   width: 258px;
   min-width: 232px;
   max-width: 300px;
-  height: calc(100vh - 16px);
+  height: 100%;
   margin: 0;
   background:
     linear-gradient(172deg, rgba(28, 29, 36, 0.94), rgba(18, 19, 24, 0.96)),
@@ -1676,9 +1805,24 @@ body {
 @media (max-width: 768px) {
   .noude-shell {
     padding: 0;
+    gap: 0;
   }
 
   .noude-shell::after {
+    display: none;
+  }
+
+  .noude-window-bar {
+    height: 34px;
+    min-height: 34px;
+    border-radius: 0;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+  }
+
+  .window-bar-meta {
     display: none;
   }
 
