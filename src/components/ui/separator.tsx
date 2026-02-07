@@ -7,10 +7,10 @@ export function Separator({ orientation = 'vertical', className = '' }: Separato
   return (
     <div
       className={[
-        'bg-[#1e293b] shrink-0',
-        orientation === 'vertical' ? 'w-px h-6 mx-1' : 'h-px w-full my-2',
+        'ui-separator',
+        orientation === 'vertical' ? 'ui-separator--vertical' : 'ui-separator--horizontal',
         className,
-      ].join(' ')}
+      ].join(' ').trim()}
     />
   );
 }

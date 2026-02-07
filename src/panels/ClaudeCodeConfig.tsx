@@ -14,37 +14,29 @@ interface Props {
 function SectionHeader({ label, open, onToggle }: { label: string; open: boolean; onToggle: () => void }) {
   return (
     <button
+      type="button"
       onClick={onToggle}
-      className="flex items-center gap-2 w-full text-left py-0 cursor-pointer bg-transparent border-none"
+      className="config-section-heading"
     >
-      {open
-        ? <ChevronDown className="w-3 h-3 text-slate-500" />
-        : <ChevronRight className="w-3 h-3 text-slate-500" />
-      }
-      <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.5px]">
-        {label}
-      </span>
+      {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+      <span>{label}</span>
     </button>
   );
 }
 
 function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
-    <div className="flex items-baseline justify-between">
-      <label className="text-[12px] font-medium text-slate-400">
-        {children}
-      </label>
-      {hint && (
-        <span className="text-[10px] text-slate-600">{hint}</span>
-      )}
+    <div className="config-label-row">
+      <label className="config-label">{children}</label>
+      {hint && <span className="config-hint">{hint}</span>}
     </div>
   );
 }
 
 function SwitchRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-center justify-between py-1">
-      <span className="text-[12px] font-medium text-slate-400">{label}</span>
+    <div className="config-switch-row">
+      <span>{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
@@ -57,12 +49,11 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
 
   return (
     <>
-      {/* Prompt Section */}
-      <div className="px-5 py-4 border-b border-[#1e293b]/60">
+      <section className="config-section">
         <SectionHeader label="Prompt" open={promptOpen} onToggle={() => setPromptOpen(!promptOpen)} />
         {promptOpen && (
-          <div className="flex flex-col gap-3 mt-3">
-            <div className="flex flex-col gap-1.5">
+          <div className="config-section-content">
+            <div className="config-field">
               <FieldLabel hint="Use {{input}} for upstream data">Main Prompt</FieldLabel>
               <Textarea
                 value={data.prompt}
@@ -71,25 +62,24 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="config-field">
               <FieldLabel>System Prompt (appended)</FieldLabel>
               <Textarea
                 value={data.appendSystemPrompt}
                 onChange={e => onChange({ appendSystemPrompt: e.target.value })}
                 placeholder="Additional instructions..."
-                className="min-h-[80px]"
+                className="config-textarea-sm"
               />
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Model & Execution Section */}
-      <div className="px-5 py-4 border-b border-[#1e293b]/60">
+      <section className="config-section">
         <SectionHeader label="Model & Execution" open={modelOpen} onToggle={() => setModelOpen(!modelOpen)} />
         {modelOpen && (
-          <div className="flex flex-col gap-3 mt-3">
-            <div className="flex flex-col gap-1.5">
+          <div className="config-section-content">
+            <div className="config-field">
               <FieldLabel>Model</FieldLabel>
               <Select value={data.model} onChange={e => onChange({ model: e.target.value as ClaudeCodeNodeData['model'] })}>
                 <option value="sonnet">Sonnet 4.5</option>
@@ -98,7 +88,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               </Select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="config-field">
               <FieldLabel>Output Format</FieldLabel>
               <Select value={data.outputFormat} onChange={e => onChange({ outputFormat: e.target.value as ClaudeCodeNodeData['outputFormat'] })}>
                 <option value="json">JSON</option>
@@ -107,7 +97,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               </Select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="config-field">
               <FieldLabel>Permission Mode</FieldLabel>
               <Select value={data.permissionMode} onChange={e => onChange({ permissionMode: e.target.value as ClaudeCodeNodeData['permissionMode'] })}>
                 <option value="bypassPermissions">Bypass Permissions</option>
@@ -119,7 +109,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               </Select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="config-field">
               <FieldLabel>Allowed Tools</FieldLabel>
               <Input
                 value={data.allowedTools.join(', ')}
@@ -129,15 +119,14 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Advanced Section */}
-      <div className="px-5 py-4 border-b border-[#1e293b]/60">
+      <section className="config-section">
         <SectionHeader label="Advanced" open={advancedOpen} onToggle={() => setAdvancedOpen(!advancedOpen)} />
         {advancedOpen && (
-          <div className="flex flex-col gap-3 mt-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
+          <div className="config-section-content">
+            <div className="config-grid-two">
+              <div className="config-field">
                 <FieldLabel hint="USD">Max Budget</FieldLabel>
                 <Input
                   type="number"
@@ -148,7 +137,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="config-field">
                 <FieldLabel hint="0 = unlimited">Max Turns</FieldLabel>
                 <Input
                   type="number"
@@ -159,7 +148,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="config-field">
               <FieldLabel>Working Directory</FieldLabel>
               <Input
                 value={data.workingDirectory}
@@ -168,7 +157,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="config-field">
               <FieldLabel hint="0 = none">Timeout (ms)</FieldLabel>
               <Input
                 type="number"
@@ -178,7 +167,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
               />
             </div>
 
-            <div className="border-t border-[#1e293b]/60 pt-3 flex flex-col gap-2">
+            <div className="config-switch-group">
               <SwitchRow
                 label="Continue Session"
                 checked={data.continueSession}
@@ -192,7 +181,7 @@ export function ClaudeCodeConfig({ data, onChange }: Props) {
             </div>
           </div>
         )}
-      </div>
+      </section>
     </>
   );
 }

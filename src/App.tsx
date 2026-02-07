@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -9,11 +9,14 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useFlowStore } from './store/flowStore';
+import { useUiStore } from './store/uiStore';
 import { nodeTypes } from './nodes';
 import { edgeTypes } from './edges';
-import { Toolbar } from './toolbar/Toolbar';
 import { NodeConfigPanel } from './panels/NodeConfigPanel';
 import { OutputPanel } from './panels/OutputPanel';
+import { Sidebar } from './layout/Sidebar';
+import { AppShell } from './layout/AppShell';
+import { MainWorkspace } from './layout/MainWorkspace';
 
 function EmptyCanvasState() {
   const addNode = useFlowStore(s => s.addNode);
@@ -32,37 +35,24 @@ function EmptyCanvasState() {
       </div>
       <h2 className="noude-empty-title">Build your agent pipeline</h2>
       <p className="noude-empty-desc">
-        Add Claude Code and Bash nodes, connect them, and run your AI workflow.
+        Compose Claude and Bash nodes, connect edges, and run autonomous workflows.
       </p>
-      <div className="flex items-center justify-center gap-2">
+      <div className="noude-empty-actions">
         <button
-          className="px-4 py-2 rounded-md text-[13px] font-medium bg-indigo-600 text-white border-none cursor-pointer hover:bg-indigo-500 transition-colors"
+          className="ui-button ui-button--primary ui-button--default"
           onClick={() => addNode('claude-code')}
         >
-          Add Claude Code Node
+          Add Claude Node
         </button>
         <button
-          className="px-4 py-2 rounded-md text-[13px] font-medium border cursor-pointer transition-colors"
-          style={{
-            background: 'rgba(30, 41, 59, 0.6)',
-            borderColor: 'var(--border-default)',
-            color: 'var(--text-secondary)',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(30, 41, 59, 0.9)';
-            e.currentTarget.style.color = 'var(--text-primary)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'rgba(30, 41, 59, 0.6)';
-            e.currentTarget.style.color = 'var(--text-secondary)';
-          }}
+          className="ui-button ui-button--outline ui-button--default"
           onClick={() => addNode('bash')}
         >
           Add Bash Node
         </button>
       </div>
       <div className="noude-empty-shortcuts">
-        Use the toolbar <kbd>Add Node</kbd> button or <kbd>Cmd+Enter</kbd> to run
+        Use sidebar actions or press <kbd>Cmd</kbd> <kbd>Enter</kbd> to run
       </div>
     </div>
   );
@@ -77,6 +67,19 @@ export default function App() {
   const setViewport = useFlowStore(s => s.setViewport);
   const selectNode = useFlowStore(s => s.selectNode);
   const selectedNodeId = useFlowStore(s => s.selectedNodeId);
+  const sidebarMobileOpen = useUiStore(s => s.sidebarMobileOpen);
+  const setSidebarMobileOpen = useUiStore(s => s.setSidebarMobileOpen);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSidebarMobileOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [setSidebarMobileOpen]);
 
   const onSelectionChange = useCallback(
     ({ nodes: selected }: OnSelectionChangeParams) => {
@@ -92,43 +95,48 @@ export default function App() {
   const isEmpty = nodes.length === 0;
 
   return (
-    <div className="noude-app">
-      <Toolbar />
-      <div className="noude-main">
-        <div className="noude-canvas">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onMoveEnd={(_, viewport) => setViewport(viewport)}
-            onSelectionChange={onSelectionChange}
-            onPaneClick={() => selectNode(null)}
-            fitView
-            proOptions={{ hideAttribution: true }}
-            defaultEdgeOptions={{ type: 'noude' }}
-            colorMode="dark"
-          >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={20}
-              size={1.2}
-              color="rgba(148, 163, 184, 0.08)"
-            />
-            <Controls />
-            <MiniMap
-              nodeColor={() => '#2a3a4e'}
-              maskColor="rgba(15, 23, 42, 0.75)"
-            />
-            {isEmpty && <EmptyCanvasState />}
-          </ReactFlow>
+    <AppShell
+      sidebar={<Sidebar />}
+      sidebarOpen={sidebarMobileOpen}
+      onSidebarClose={() => setSidebarMobileOpen(false)}
+    >
+      <MainWorkspace onOpenSidebar={() => setSidebarMobileOpen(true)}>
+        <div className="workspace-top">
+          <div className="noude-canvas">
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onMoveEnd={(_, viewport) => setViewport(viewport)}
+              onSelectionChange={onSelectionChange}
+              onPaneClick={() => selectNode(null)}
+              fitView
+              proOptions={{ hideAttribution: true }}
+              defaultEdgeOptions={{ type: 'noude' }}
+              colorMode="dark"
+            >
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={24}
+                size={1.4}
+                color="rgba(255, 255, 255, 0.08)"
+              />
+              <Controls />
+              <MiniMap
+                nodeColor={() => '#6678ff'}
+                maskColor="rgba(14, 14, 19, 0.75)"
+              />
+              {isEmpty && <EmptyCanvasState />}
+            </ReactFlow>
+          </div>
+          {selectedNodeId && <NodeConfigPanel />}
         </div>
-        {selectedNodeId && <NodeConfigPanel />}
-      </div>
-      <OutputPanel />
-    </div>
+        <OutputPanel />
+      </MainWorkspace>
+    </AppShell>
   );
 }
