@@ -161,7 +161,7 @@ export function OutputPanel() {
           ) : (
             <div className="output-empty">
               <Play className="w-3.5 h-3.5" />
-              <span>{flowStatus === 'idle' ? 'Run a flow to see output here' : 'Waiting for output...'}</span>
+              <span>{flowStatus === 'idle' ? 'No execution output yet' : 'Awaiting task output...'}</span>
             </div>
           )}
 

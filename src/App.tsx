@@ -33,26 +33,23 @@ function EmptyCanvasState() {
           <path d="M12 8v8" />
         </svg>
       </div>
-      <h2 className="noude-empty-title">Build your agent pipeline</h2>
+      <h2 className="noude-empty-title">Canvas Ready</h2>
       <p className="noude-empty-desc">
-        Compose Claude and Bash nodes, connect edges, and run autonomous workflows.
+        Add your first Claude or Bash step to start composing this flow.
       </p>
       <div className="noude-empty-actions">
         <button
           className="ui-button ui-button--primary ui-button--default"
           onClick={() => addNode('claude-code')}
         >
-          Add Claude Node
+          New Claude Step
         </button>
         <button
           className="ui-button ui-button--outline ui-button--default"
           onClick={() => addNode('bash')}
         >
-          Add Bash Node
+          New Bash Step
         </button>
-      </div>
-      <div className="noude-empty-shortcuts">
-        Use sidebar actions or press <kbd>Cmd</kbd> <kbd>Enter</kbd> to run
       </div>
     </div>
   );
@@ -102,7 +99,7 @@ export default function App() {
     >
       <MainWorkspace onOpenSidebar={() => setSidebarMobileOpen(true)}>
         <div className="workspace-top">
-          <div className="noude-canvas">
+          <div className={['noude-canvas', isEmpty ? 'is-empty' : ''].join(' ').trim()}>
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -126,10 +123,12 @@ export default function App() {
                 color="rgba(255, 255, 255, 0.08)"
               />
               <Controls />
-              <MiniMap
-                nodeColor={() => '#6678ff'}
-                maskColor="rgba(14, 14, 19, 0.75)"
-              />
+              {nodes.length > 1 && (
+                <MiniMap
+                  nodeColor={() => '#6678ff'}
+                  maskColor="rgba(14, 14, 19, 0.75)"
+                />
+              )}
               {isEmpty && <EmptyCanvasState />}
             </ReactFlow>
           </div>
