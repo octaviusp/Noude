@@ -13,11 +13,15 @@ import { useFlowStore } from './store/flowStore';
 import { useUiStore } from './store/uiStore';
 import { nodeTypes } from './nodes';
 import { edgeTypes } from './edges';
-import { NodeConfigPanel } from './panels/NodeConfigPanel';
 import { OutputPanel } from './panels/OutputPanel';
+import { NodeContextMenu } from './panels/NodeContextMenu';
+import { NodeSettingsSheet } from './panels/NodeSettingsSheet';
+import { QuickSettingsPopover } from './panels/QuickSettingsPopover';
 import { Sidebar } from './layout/Sidebar';
 import { AppShell } from './layout/AppShell';
 import { MainWorkspace } from './layout/MainWorkspace';
+import { CanvasCommandBar } from './layout/CanvasCommandBar';
+import { ActionPalette } from './layout/ActionPalette';
 
 function EmptyCanvasState() {
   const addNode = useFlowStore(s => s.addNode);
@@ -67,19 +71,99 @@ export default function App() {
   const selectedNodeId = useFlowStore(s => s.selectedNodeId);
   const sidebarMobileOpen = useUiStore(s => s.sidebarMobileOpen);
   const setSidebarMobileOpen = useUiStore(s => s.setSidebarMobileOpen);
+  const actionPaletteOpen = useUiStore(s => s.actionPaletteOpen);
+  const setActionPaletteOpen = useUiStore(s => s.setActionPaletteOpen);
+  const nodeContextMenu = useUiStore(s => s.nodeContextMenu);
+  const setNodeContextMenu = useUiStore(s => s.setNodeContextMenu);
+  const quickSettings = useUiStore(s => s.quickSettings);
+  const setQuickSettings = useUiStore(s => s.setQuickSettings);
+  const nodeSettingsSheetNodeId = useUiStore(s => s.nodeSettingsSheetNodeId);
+  const setNodeSettingsSheetNodeId = useUiStore(s => s.setNodeSettingsSheetNodeId);
+  const outputCollapsed = useUiStore(s => s.outputCollapsed);
+  const setOutputCollapsed = useUiStore(s => s.setOutputCollapsed);
   const reactFlowRef = useRef<ReactFlowInstance<any, any> | null>(null);
   const previousNodeCountRef = useRef(nodes.length);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isTyping =
+        target != null &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable);
+
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setActionPaletteOpen(true);
+        return;
+      }
+
+      if ((event.metaKey || event.ctrlKey) && event.key === ',' && selectedNodeId) {
+        event.preventDefault();
+        setNodeSettingsSheetNodeId(selectedNodeId);
+        return;
+      }
+
+      if (!isTyping && (event.key === 'Enter' || event.key === ' ') && selectedNodeId) {
+        event.preventDefault();
+        const nodeEl = document.querySelector(`.react-flow__node[data-id="${selectedNodeId}"]`) as HTMLElement | null;
+        if (nodeEl) {
+          const rect = nodeEl.getBoundingClientRect();
+          setQuickSettings({
+            nodeId: selectedNodeId,
+            x: rect.right + 10,
+            y: rect.top + 8,
+          });
+        }
+        return;
+      }
+
       if (event.key === 'Escape') {
-        setSidebarMobileOpen(false);
+        if (nodeContextMenu) {
+          setNodeContextMenu(null);
+          return;
+        }
+        if (quickSettings) {
+          setQuickSettings(null);
+          return;
+        }
+        if (nodeSettingsSheetNodeId) {
+          setNodeSettingsSheetNodeId(null);
+          return;
+        }
+        if (actionPaletteOpen) {
+          setActionPaletteOpen(false);
+          return;
+        }
+        if (sidebarMobileOpen) {
+          setSidebarMobileOpen(false);
+          return;
+        }
+        if (!outputCollapsed) {
+          setOutputCollapsed(true);
+        }
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [setSidebarMobileOpen]);
+  }, [
+    actionPaletteOpen,
+    nodeContextMenu,
+    nodeSettingsSheetNodeId,
+    outputCollapsed,
+    quickSettings,
+    selectedNodeId,
+    setActionPaletteOpen,
+    setNodeContextMenu,
+    setNodeSettingsSheetNodeId,
+    setOutputCollapsed,
+    setQuickSettings,
+    setSidebarMobileOpen,
+    sidebarMobileOpen,
+  ]);
 
   useEffect(() => {
     const previousNodeCount = previousNodeCountRef.current;
@@ -104,9 +188,10 @@ export default function App() {
         selectNode(selected[0].id);
       } else if (selected.length === 0) {
         selectNode(null);
+        setNodeContextMenu(null);
       }
     },
-    [selectNode]
+    [selectNode, setNodeContextMenu]
   );
 
   const isEmpty = nodes.length === 0;
@@ -117,7 +202,7 @@ export default function App() {
       sidebarOpen={sidebarMobileOpen}
       onSidebarClose={() => setSidebarMobileOpen(false)}
     >
-      <MainWorkspace onOpenSidebar={() => setSidebarMobileOpen(true)}>
+      <MainWorkspace>
         <div className="workspace-top">
           <div className={['noude-canvas', isEmpty ? 'is-empty' : ''].join(' ').trim()}>
             <ReactFlow
@@ -133,7 +218,11 @@ export default function App() {
               }}
               onMoveEnd={(_, viewport) => setViewport(viewport)}
               onSelectionChange={onSelectionChange}
-              onPaneClick={() => selectNode(null)}
+              onPaneClick={() => {
+                selectNode(null);
+                setNodeContextMenu(null);
+                setQuickSettings(null);
+              }}
               minZoom={0.45}
               maxZoom={1.25}
               fitViewOptions={{
@@ -160,10 +249,14 @@ export default function App() {
               )}
             </ReactFlow>
             {isEmpty && <EmptyCanvasState />}
+            <CanvasCommandBar onOpenSidebar={() => setSidebarMobileOpen(true)} />
           </div>
-          {selectedNodeId && <NodeConfigPanel />}
         </div>
         <OutputPanel />
+        <NodeContextMenu />
+        <QuickSettingsPopover />
+        <NodeSettingsSheet />
+        <ActionPalette />
       </MainWorkspace>
     </AppShell>
   );

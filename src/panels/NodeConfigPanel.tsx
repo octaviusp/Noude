@@ -29,28 +29,35 @@ const statusBadgeVariant: Record<string, 'default' | 'amber' | 'indigo' | 'green
   skipped: 'slate',
 };
 
-export function NodeConfigPanel() {
+interface NodeConfigPanelProps {
+  nodeId?: string | null;
+  className?: string;
+  onClose?: () => void;
+}
+
+export function NodeConfigPanel({ nodeId, className, onClose }: NodeConfigPanelProps = {}) {
   const selectedNodeId = useFlowStore(s => s.selectedNodeId);
   const getNode = useFlowStore(s => s.getNode);
   const updateNodeData = useFlowStore(s => s.updateNodeData);
   const removeNode = useFlowStore(s => s.removeNode);
   const selectNode = useFlowStore(s => s.selectNode);
   const getNodeStatus = useExecutionStore(s => s.getNodeStatus);
+  const activeNodeId = nodeId ?? selectedNodeId;
 
-  if (!selectedNodeId) return null;
+  if (!activeNodeId) return null;
 
-  const node = getNode(selectedNodeId);
+  const node = getNode(activeNodeId);
   if (!node) return null;
 
   const data = node.data as AnyNodeData;
-  const onChange = (partial: Partial<AnyNodeData>) => updateNodeData(selectedNodeId, partial);
+  const onChange = (partial: Partial<AnyNodeData>) => updateNodeData(activeNodeId, partial);
   const Icon = nodeIcons[data.nodeType] || Sparkles;
   const accentClass = nodeAccentClass[data.nodeType] || 'node-accent-default';
-  const nodeStatus = getNodeStatus(selectedNodeId);
+  const nodeStatus = getNodeStatus(activeNodeId);
   const statusVariant = statusBadgeVariant[nodeStatus] || 'slate';
 
   return (
-    <aside className="config-panel" aria-label="Node configuration panel">
+    <aside className={['config-panel', className ?? ''].join(' ').trim()} aria-label="Node configuration panel">
       <div className={`config-panel-header ${accentClass}`}>
         <div className="config-panel-icon">
           <Icon className="w-4 h-4" />
@@ -62,7 +69,10 @@ export function NodeConfigPanel() {
         <Badge variant={statusVariant}>{nodeStatus}</Badge>
         <button
           type="button"
-          onClick={() => selectNode(null)}
+          onClick={() => {
+            if (onClose) onClose();
+            else selectNode(null);
+          }}
           className="config-panel-close"
           aria-label="Close node configuration"
         >
@@ -85,7 +95,7 @@ export function NodeConfigPanel() {
             </label>
             <div className="config-field">
               <span className="config-label">Node ID</span>
-              <code className="config-inline-code">{selectedNodeId}</code>
+              <code className="config-inline-code">{activeNodeId}</code>
             </div>
           </div>
         </section>
@@ -106,8 +116,9 @@ export function NodeConfigPanel() {
               variant="destructive"
               className="w-full"
               onClick={() => {
-                removeNode(selectedNodeId);
-                selectNode(null);
+                removeNode(activeNodeId);
+                if (onClose) onClose();
+                else selectNode(null);
               }}
             >
               <Trash2 className="w-3.5 h-3.5" />

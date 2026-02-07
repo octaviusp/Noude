@@ -15,3 +15,8 @@ export interface SidebarState {
 }
 
 export type ViewMode = 'canvas' | 'table';
+
+export interface CanvasOverlayState {
+  actionPaletteOpen: boolean;
+  nodeSettingsSheetNodeId: string | null;
+}

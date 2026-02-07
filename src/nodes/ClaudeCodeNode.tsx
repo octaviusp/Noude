@@ -1,4 +1,3 @@
-import { useState, type MouseEvent } from 'react';
 import type { NodeProps } from '@xyflow/react';
 import type { AnyNodeData, ClaudeCodeNodeData } from '../types';
 import { BaseNode } from './BaseNode';
@@ -27,16 +26,8 @@ export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
   const liveMetrics = useExecutionStore(s => s.nodeLiveMetrics.get(id));
   const output = useExecutionStore(s => s.getNodeOutput(id));
   const isActive = status === 'running' || status === 'streaming';
-  const [expanded, setExpanded] = useState(false);
   const prompt = d.prompt.trim();
-  const systemPrompt = d.appendSystemPrompt.trim();
   const toolsLabel = `${d.allowedTools.length} ${d.allowedTools.length === 1 ? 'tool' : 'tools'}`;
-
-  const toggleExpanded = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setExpanded(prev => !prev);
-  };
 
   return (
     <BaseNode id={id} data={data as AnyNodeData} selected={selected} icon="C">
@@ -62,25 +53,7 @@ export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
           )}
         </div>
       )}
-      <div className="noude-node-debug-card">
-        <div className="noude-node-debug-header">
-          <span className="noude-node-debug-title">Prompt Debug</span>
-          <button
-            type="button"
-            className="noude-node-debug-toggle nodrag nopan"
-            onClick={toggleExpanded}
-          >
-            {expanded ? 'Collapse' : 'Expand'}
-          </button>
-        </div>
-        <div className={`noude-node-preview ${expanded ? 'expanded' : ''}`}>
-          {prompt || 'No prompt configured.'}
-        </div>
-        <div className="noude-node-preview-subtitle">System Prompt</div>
-        <div className={`noude-node-preview noude-node-system-preview ${expanded ? 'expanded' : ''}`}>
-          {systemPrompt || 'No appended system prompt.'}
-        </div>
-      </div>
+      <div className="noude-node-summary">{prompt || 'No prompt configured.'}</div>
       {output?.meta.costUsd != null && (
         <div className="noude-node-cost">${output.meta.costUsd.toFixed(3)}</div>
       )}

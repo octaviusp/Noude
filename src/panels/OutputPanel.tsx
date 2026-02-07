@@ -3,6 +3,8 @@ import {
   ChevronDown,
   ChevronUp,
   Play,
+  Pin,
+  PinOff,
   AlertCircle,
   Cpu,
   Copy,
@@ -196,10 +198,15 @@ export function OutputPanel() {
   const setCollapsed = useUiStore(s => s.setOutputCollapsed);
   const height = useUiStore(s => s.outputHeight);
   const setHeight = useUiStore(s => s.setOutputHeight);
+  const outputPinned = useUiStore(s => s.outputPinned);
+  const setOutputPinned = useUiStore(s => s.setOutputPinned);
+  const outputAutoOpenMode = useUiStore(s => s.outputAutoOpenMode);
   const logs = useExecutionStore(s => s.logs);
 
   const bodyRef = useRef<HTMLDivElement>(null);
   const stickyBottomRef = useRef(true);
+  const prevFlowStatusRef = useRef(flowStatus);
+  const sawNodeErrorRef = useRef(false);
 
   const claudeNodes = useMemo(
     () => nodes
@@ -210,6 +217,10 @@ export function OutputPanel() {
 
   const selectedNode = selectedNodeId ? nodes.find(n => n.id === selectedNodeId) : undefined;
   const selectedIsClaude = selectedNode?.data.nodeType === 'claude-code';
+  const hasNodeErrors = useMemo(
+    () => Array.from(nodeStatuses.values()).some((status) => status === 'error'),
+    [nodeStatuses]
+  );
 
   useEffect(() => {
     if (selectedNodeId && selectedIsClaude) {
@@ -255,6 +266,26 @@ export function OutputPanel() {
     if (!bodyRef.current || !stickyBottomRef.current) return;
     bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   }, [lastEventId, streaming, logs.length]);
+
+  useEffect(() => {
+    const previousFlowStatus = prevFlowStatusRef.current;
+    const flowStarted = previousFlowStatus !== 'running' && flowStatus === 'running';
+    const flowErrored = flowStatus === 'failed';
+    const firstNodeError = hasNodeErrors && !sawNodeErrorRef.current;
+
+    if (!outputPinned) {
+      if (outputAutoOpenMode === 'on-run' && flowStarted) {
+        setCollapsed(false);
+      }
+
+      if ((outputAutoOpenMode === 'on-error' || outputAutoOpenMode === 'on-run') && (flowErrored || firstNodeError)) {
+        setCollapsed(false);
+      }
+    }
+
+    prevFlowStatusRef.current = flowStatus;
+    sawNodeErrorRef.current = hasNodeErrors;
+  }, [flowStatus, hasNodeErrors, outputAutoOpenMode, outputPinned, setCollapsed]);
 
   const handleBodyScroll = useCallback(() => {
     if (!bodyRef.current) return;
@@ -316,34 +347,55 @@ export function OutputPanel() {
         </div>
       )}
 
-      <button
-        type="button"
-        className="output-header"
-        onClick={() => setCollapsed(!collapsed)}
-        aria-expanded={!collapsed}
-      >
-        <span className="output-title">Output</span>
-        {label && <span className="output-node-label">{label}</span>}
-        {liveMetrics && (
-          <span className="output-metric">Turn {liveMetrics.turns}</span>
-        )}
-        {flowStatus !== 'idle' && (
-          <Badge variant={statusBadgeVariant[flowStatus] || 'slate'}>
-            {StatusIcon && <StatusIcon className="w-2.5 h-2.5" />}
-            {flowStatus}
-          </Badge>
-        )}
-        {output?.meta && (
-          <span className="output-inline-meta">
-            {output.meta.numTurns != null && `${output.meta.numTurns} turns`}
-            {output.meta.costUsd != null && ` · $${output.meta.costUsd.toFixed(3)}`}
-            {output.meta.durationMs != null && ` · ${(output.meta.durationMs / 1000).toFixed(1)}s`}
-          </span>
-        )}
-        <span className="output-collapse-icon">
-          {collapsed ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-        </span>
-      </button>
+      <div className="output-header">
+        <button
+          type="button"
+          className="output-header-main"
+          onClick={() => setCollapsed(!collapsed)}
+          aria-expanded={!collapsed}
+        >
+          <span className="output-title">Output</span>
+          {label && <span className="output-node-label">{label}</span>}
+          {liveMetrics && (
+            <span className="output-metric">Turn {liveMetrics.turns}</span>
+          )}
+          {flowStatus !== 'idle' && (
+            <Badge variant={statusBadgeVariant[flowStatus] || 'slate'}>
+              {StatusIcon && <StatusIcon className="w-2.5 h-2.5" />}
+              {flowStatus}
+            </Badge>
+          )}
+          {output?.meta && (
+            <span className="output-inline-meta">
+              {output.meta.numTurns != null && `${output.meta.numTurns} turns`}
+              {output.meta.costUsd != null && ` · $${output.meta.costUsd.toFixed(3)}`}
+              {output.meta.durationMs != null && ` · ${(output.meta.durationMs / 1000).toFixed(1)}s`}
+            </span>
+          )}
+        </button>
+
+        <div className="output-header-actions">
+          <button
+            type="button"
+            className={['output-pin-btn', outputPinned ? 'is-active' : ''].join(' ').trim()}
+            onClick={() => setOutputPinned(!outputPinned)}
+            title={outputPinned ? 'Unpin output drawer' : 'Pin output drawer'}
+            aria-label={outputPinned ? 'Unpin output drawer' : 'Pin output drawer'}
+          >
+            {outputPinned ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            type="button"
+            className="output-collapse-btn"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand output' : 'Collapse output'}
+          >
+            <span className="output-collapse-icon">
+              {collapsed ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </span>
+          </button>
+        </div>
+      </div>
 
       {!collapsed && (
         <div ref={bodyRef} className="output-body" onScroll={handleBodyScroll}>
