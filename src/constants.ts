@@ -31,22 +31,6 @@ export const NODE_DEFAULTS = {
   },
 };
 
-export const NODE_COLORS: Record<NodeType, string> = {
-  'claude-code': '#d97706',
-  bash: '#6366f1',
-};
-
-export const STATUS_COLORS = {
-  idle: '#6b7280',
-  queued: '#f59e0b',
-  running: '#3b82f6',
-  streaming: '#8b5cf6',
-  success: '#10b981',
-  error: '#ef4444',
-  cancelled: '#9ca3af',
-  skipped: '#9ca3af',
-};
-
 export const FLOW_DEFAULTS = {
   workingDirectory: '',
   maxConcurrency: 3,

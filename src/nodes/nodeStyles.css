@@ -247,79 +247,6 @@
   color: var(--text-muted);
 }
 
-.noude-node-debug-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 7px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.noude-node-debug-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.noude-node-debug-title {
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--text-faint);
-}
-
-.noude-node-debug-toggle {
-  border: 0;
-  background: transparent;
-  color: #aab6ff;
-  font-size: 9px;
-  font-weight: 600;
-  padding: 0;
-  cursor: pointer;
-}
-
-.noude-node-debug-toggle:hover {
-  color: #c3ccff;
-}
-
-.noude-node-preview {
-  font-size: 9.5px;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  line-height: 1.45;
-  max-height: 32px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.noude-node-preview.expanded {
-  max-height: none;
-  -webkit-line-clamp: initial;
-  display: block;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.noude-node-preview-subtitle {
-  margin-top: 1px;
-  font-size: 8px;
-  color: var(--text-faint);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.noude-node-system-preview {
-  color: rgba(203, 211, 255, 0.82);
-}
-
 .noude-node-badges {
   display: flex;
   gap: 5px;
@@ -583,4 +510,10 @@
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noude-node-status.running,
+  .noude-node-status.streaming { animation: none; }
+  .noude-node.executing { animation: none; }
 }
