@@ -44,6 +44,11 @@ pub async fn invoke_claude(
     let format = args.output_format.as_deref().unwrap_or("json");
     cmd_args.extend(["--output-format".into(), format.into()]);
 
+    // Claude CLI requires --verbose with --print when using stream-json output.
+    if format == "stream-json" {
+        cmd_args.push("--verbose".into());
+    }
+
     if let Some(ref tools) = args.allowed_tools {
         if !tools.is_empty() {
             cmd_args.extend(["--allowedTools".into(), tools.join(",")]);
