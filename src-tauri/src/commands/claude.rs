@@ -165,7 +165,7 @@ pub async fn invoke_claude(
                             stdout_buf.push('\n');
                             let _ = on_event_clone.send(ProcessEvent::Stdout {
                                 process_id: pid_clone.clone(),
-                                chunk: l,
+                                chunk: format!("{}\n", l),
                             });
                         }
                         Ok(None) => {
@@ -187,7 +187,7 @@ pub async fn invoke_claude(
                             stderr_buf.push('\n');
                             let _ = on_event_clone.send(ProcessEvent::Stderr {
                                 process_id: pid_clone.clone(),
-                                chunk: l,
+                                chunk: format!("{}\n", l),
                             });
                         }
                         Ok(None) => {

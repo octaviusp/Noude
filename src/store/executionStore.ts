@@ -91,7 +91,7 @@ function appendNodeStreaming(
   set((s) => {
     const next = new Map(s.nodeStreaming);
     let buf = next.get(nodeId) ?? '';
-    buf += `${line}\n`;
+    buf += line.endsWith('\n') ? line : `${line}\n`;
     if (buf.length > MAX_STREAMING_CHARS) {
       buf = buf.slice(-MAX_STREAMING_CHARS);
     }
@@ -458,7 +458,10 @@ async function executeNode(
         break;
       case 'completed':
         if (data.nodeType === 'claude-code' && (data as ClaudeCodeNodeData).outputFormat === 'stream-json') {
-          parseStreamChunk(nodeId, '\n', set, get);
+          const pendingCarry = get().nodeParsers.get(nodeId)?.carry ?? '';
+          if (pendingCarry.trim().length > 0) {
+            parseStreamChunk(nodeId, '\n', set, get);
+          }
         }
         set((s) => {
           const next = new Map(s.activeProcessIds);
@@ -704,7 +707,8 @@ function tryParseJson(text: string): Record<string, unknown> | undefined {
 
 function parseStreamChunk(nodeId: string, chunk: string, set: SetFn, get: GetFn) {
   const parserState = get().nodeParsers.get(nodeId) ?? createClaudeStreamParserState();
-  const parsedChunk = parseClaudeStreamChunk(parserState, chunk);
+  const normalizedChunk = chunk.endsWith('\n') ? chunk : `${chunk}\n`;
+  const parsedChunk = parseClaudeStreamChunk(parserState, normalizedChunk);
 
   set((s) => {
     const next = new Map(s.nodeParsers);
@@ -718,7 +722,7 @@ function parseStreamChunk(nodeId: string, chunk: string, set: SetFn, get: GetFn)
       level: 'warn',
       title: 'Parser warning',
       summary: warning,
-      raw: chunk,
+      raw: normalizedChunk,
     });
   }
 

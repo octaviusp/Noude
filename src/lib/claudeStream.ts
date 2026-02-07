@@ -296,7 +296,11 @@ export function parseClaudeStreamChunk(
       messages.push(parseMessageObject(line, obj));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      parseErrors.push(`JSON parse error: ${msg}. line=${truncate(line, 120)}`);
+      const carryHint = parserState.carry.trim().length > 0 ? ' carry=present' : ' carry=empty';
+      const concatHint = line.includes('}{') ? ' possible-concatenated-json' : '';
+      parseErrors.push(
+        `JSON parse error: ${msg}. len=${line.length}.${carryHint}${concatHint} line=${truncate(line, 120)}`
+      );
     }
   }
 

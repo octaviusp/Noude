@@ -1,3 +1,4 @@
+import { useEffect, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { AnyNodeData } from '../types';
 import { useExecutionStore } from '../store/executionStore';
@@ -16,18 +17,95 @@ export function BaseNode({ id, data, selected, icon, children }: BaseNodeProps) 
   const status = useExecutionStore(s => s.getNodeStatus(id));
   const output = useExecutionStore(s => s.getNodeOutput(id));
   const selectNode = useFlowStore(s => s.selectNode);
+  const updateNodeData = useFlowStore(s => s.updateNodeData);
   const isActive = status === 'running' || status === 'streaming';
+  const [isEditingLabel, setIsEditingLabel] = useState(false);
+  const [draftLabel, setDraftLabel] = useState(data.label);
+
+  useEffect(() => {
+    if (!isEditingLabel) {
+      setDraftLabel(data.label);
+    }
+  }, [data.label, isEditingLabel]);
+
+  const startLabelEdit = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDraftLabel(data.label);
+    setIsEditingLabel(true);
+  };
+
+  const commitLabel = () => {
+    const next = draftLabel.trim();
+    if (next && next !== data.label) {
+      updateNodeData(id, { label: next });
+    } else {
+      setDraftLabel(data.label);
+    }
+    setIsEditingLabel(false);
+  };
+
+  const cancelLabelEdit = () => {
+    setDraftLabel(data.label);
+    setIsEditingLabel(false);
+  };
+
+  const onLabelKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      commitLabel();
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelLabelEdit();
+    }
+  };
 
   return (
     <div
-      className={`noude-node type-${data.nodeType} ${selected ? 'selected' : ''} ${isActive ? 'executing' : ''}`}
+      className={`noude-node type-${data.nodeType} ${selected ? 'selected' : ''} ${isActive ? 'executing' : ''} ${data.enabled ? '' : 'is-disabled'}`}
       onClick={() => selectNode(id)}
     >
       <Handle type="target" position={Position.Left} id="in" className="noude-handle" />
 
       <div className="noude-node-header">
         <div className="noude-node-icon">{icon}</div>
-        <div className="noude-node-label">{data.label}</div>
+        <div className="noude-node-title-wrap">
+          {isEditingLabel ? (
+            <input
+              value={draftLabel}
+              onChange={event => setDraftLabel(event.target.value)}
+              onBlur={commitLabel}
+              onKeyDown={onLabelKeyDown}
+              onMouseDown={event => event.stopPropagation()}
+              onClick={event => event.stopPropagation()}
+              className="noude-node-label-input nodrag nopan"
+              aria-label="Edit node name"
+              autoFocus
+            />
+          ) : (
+            <button
+              type="button"
+              className="noude-node-label noude-node-label-button nodrag nopan"
+              onDoubleClick={startLabelEdit}
+              title="Double-click to rename"
+            >
+              {data.label}
+            </button>
+          )}
+        </div>
+        {!isEditingLabel && (
+          <button
+            type="button"
+            className="noude-node-edit-label nodrag nopan"
+            onClick={startLabelEdit}
+            aria-label="Rename node"
+            title="Rename node"
+          >
+            Edit
+          </button>
+        )}
         <div className={`noude-node-status ${status}`} />
       </div>
 

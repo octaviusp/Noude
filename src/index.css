@@ -803,7 +803,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.03), transparent 30%);
+  background: none;
   z-index: 1;
 }
 
