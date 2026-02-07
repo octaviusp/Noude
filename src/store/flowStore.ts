@@ -92,6 +92,15 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   },
 
   onConnect: (connection: Connection) => {
+    // Prevent self-loops
+    if (connection.source === connection.target) return;
+
+    // Prevent duplicate edges
+    const exists = get().edges.some(
+      e => e.source === connection.source && e.target === connection.target
+    );
+    if (exists) return;
+
     const edgeData: NoudeEdgeData = { priority: 0, animated: false };
     set({
       edges: addEdge(

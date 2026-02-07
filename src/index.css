@@ -421,6 +421,46 @@ body {
   outline: none;
 }
 
+.sidebar-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.sidebar-setting-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sidebar-setting-input {
+  width: 56px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  padding: 0 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.sidebar-setting-input:focus {
+  border-color: rgba(91, 111, 255, 0.55);
+  box-shadow: 0 0 0 2px rgba(91, 111, 255, 0.12);
+  outline: none;
+}
+
+.sidebar-setting-checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+
 .section-label {
   padding: 12px 10px 6px;
   font-size: 10px;

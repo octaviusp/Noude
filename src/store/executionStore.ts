@@ -170,6 +170,28 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
     if (nodeIds.length === 0) return;
 
+    // Pre-run validation: check for empty prompts/scripts
+    const validationErrors: string[] = [];
+    for (const nodeId of nodeIds) {
+      const node = flow.getNode(nodeId);
+      if (!node) continue;
+      const d = node.data;
+      if (d.nodeType === 'claude-code' && !d.prompt.trim()) {
+        validationErrors.push(`"${d.label}" has an empty prompt`);
+      } else if (d.nodeType === 'bash' && !d.script.trim()) {
+        validationErrors.push(`"${d.label}" has an empty script`);
+      }
+    }
+    if (validationErrors.length > 0) {
+      set({
+        flowStatus: 'failed',
+        logs: validationErrors.map(e => `[Validation] ${e}`),
+        startedAt: Date.now(),
+        finishedAt: Date.now(),
+      });
+      return;
+    }
+
     // Reset state
     set({
       flowStatus: 'running',
@@ -525,7 +547,12 @@ async function executeNode(
         break;
     }
 
-    const result = await completionPromise;
+    // JS-side safety timeout: if Rust panics or hangs, don't freeze the flow forever
+    const JS_TIMEOUT_MS = data.timeoutMs > 0 ? data.timeoutMs + 10_000 : 300_000; // node timeout + 10s buffer, or 5min default
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Node execution timed out (JS safety timeout)')), JS_TIMEOUT_MS);
+    });
+    const result = await Promise.race([completionPromise, timeoutPromise]);
     const durationMs = Date.now() - startTime;
 
     const streamMeta = get().nodeResultMeta.get(nodeId);
@@ -663,6 +690,9 @@ async function executeClaudeNode(
   const extraPrompt = data.appendSystemPrompt?.trim();
   const systemPrompt = [buildClaudeSystemPrompt(data.label), extraPrompt].filter(Boolean).join('\n\n');
 
+  // Default to bypassPermissions to prevent Claude blocking forever waiting for stdin
+  const permissionMode = data.permissionMode || 'bypassPermissions';
+
   return invokeClaude({
     prompt,
     model: normalizeModel(data.model),
@@ -671,7 +701,7 @@ async function executeClaudeNode(
     disallowedTools: data.disallowedTools.length > 0 ? data.disallowedTools : undefined,
     appendSystemPrompt: systemPrompt,
     maxBudgetUsd: data.maxBudgetUsd > 0 ? data.maxBudgetUsd : undefined,
-    permissionMode: data.permissionMode,
+    permissionMode,
     workingDirectory: workingDir,
     additionalDirs: data.additionalDirs.length > 0 ? data.additionalDirs : undefined,
     maxTurns: data.maxTurns > 0 ? data.maxTurns : undefined,

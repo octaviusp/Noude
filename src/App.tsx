@@ -10,6 +10,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useFlowStore } from './store/flowStore';
+import { useExecutionStore } from './store/executionStore';
 import { useUiStore } from './store/uiStore';
 import { nodeTypes } from './nodes';
 import { edgeTypes } from './edges';
@@ -22,6 +23,7 @@ import { AppShell } from './layout/AppShell';
 import { MainWorkspace } from './layout/MainWorkspace';
 import { CanvasCommandBar } from './layout/CanvasCommandBar';
 import { ActionPalette } from './layout/ActionPalette';
+import { downloadFlow } from './lib/serialization';
 
 function EmptyCanvasState() {
   const addNode = useFlowStore(s => s.addNode);
@@ -97,6 +99,33 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         setActionPaletteOpen(true);
+        return;
+      }
+
+      // Cmd+S — Save flow
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        const flow = useFlowStore.getState().exportToJson();
+        downloadFlow(flow);
+        return;
+      }
+
+      // Cmd+Enter — Run/Stop flow
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        event.preventDefault();
+        const exec = useExecutionStore.getState();
+        if (exec.flowStatus === 'running') {
+          exec.cancelFlow();
+        } else {
+          exec.runFlow();
+        }
+        return;
+      }
+
+      // Cmd+L — Auto layout
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'l') {
+        event.preventDefault();
+        useFlowStore.getState().autoLayout();
         return;
       }
 

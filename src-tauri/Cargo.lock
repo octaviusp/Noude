@@ -2051,6 +2051,7 @@ name = "noude"
 version = "0.1.0"
 dependencies = [
  "dashmap",
+ "libc",
  "serde",
  "serde_json",
  "tauri",
