@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Play, AlertCircle, Cpu, Copy, Braces } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Play,
+  AlertCircle,
+  Cpu,
+  Copy,
+  Braces,
+  LoaderCircle,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-react';
 import { useExecutionStore } from '../store/executionStore';
 import { useFlowStore } from '../store/flowStore';
 import { useUiStore } from '../store/uiStore';
@@ -12,6 +23,14 @@ const MIN_HEIGHT = 36;
 const MAX_HEIGHT_RATIO = 0.6;
 
 type FilterMode = 'all' | 'assistant' | 'tools' | 'system' | 'errors';
+
+const FILTER_OPTIONS: Array<{ mode: FilterMode; label: string }> = [
+  { mode: 'assistant', label: 'Assistant' },
+  { mode: 'tools', label: 'Tools' },
+  { mode: 'system', label: 'System' },
+  { mode: 'errors', label: 'Errors' },
+  { mode: 'all', label: 'All' },
+];
 
 const statusBadgeVariant: Record<string, 'default' | 'amber' | 'indigo' | 'green' | 'red' | 'purple' | 'slate' | 'blue'> = {
   idle: 'slate',
@@ -28,9 +47,9 @@ const statusIcons: Record<string, typeof Play> = {
 
 function matchesFilter(event: AgentLogEvent, filter: FilterMode): boolean {
   if (filter === 'all') return true;
-  if (filter === 'assistant') return event.kind === 'assistant';
+  if (filter === 'assistant') return event.kind === 'assistant' || event.kind === 'tool_use' || event.kind === 'tool_result' || event.kind === 'result';
   if (filter === 'tools') return event.kind === 'tool_use' || event.kind === 'tool_result';
-  if (filter === 'system') return event.kind === 'system' || event.kind === 'lifecycle' || event.kind === 'result' || event.kind === 'user';
+  if (filter === 'system') return event.kind === 'system' || event.kind === 'lifecycle' || event.kind === 'user' || event.kind === 'stream';
   if (filter === 'errors') return event.level === 'error' || event.kind === 'stderr' || event.kind === 'parser';
   return true;
 }
@@ -95,6 +114,65 @@ function prettyRaw(raw: string | undefined): string {
   }
 }
 
+function formatToolParamValue(value: unknown): string {
+  if (typeof value === 'string') return value.length > 80 ? `${value.slice(0, 77)}...` : value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return `[${value.length} items]`;
+  if (value && typeof value === 'object') return '{...}';
+  return 'null';
+}
+
+interface ToolEventDetails {
+  toolName: string;
+  toolUseId?: string;
+  status: 'running' | 'completed' | 'error';
+  params: Array<{ key: string; value: string }>;
+  output?: string;
+}
+
+function toolNameFromTitle(title: string): string | undefined {
+  const prefix = 'Tool start: ';
+  if (title.startsWith(prefix)) return title.slice(prefix.length);
+  return undefined;
+}
+
+function getToolEventDetails(event: AgentLogEvent): ToolEventDetails | null {
+  if (event.kind !== 'tool_use' && event.kind !== 'tool_result') return null;
+
+  const rawObj = parseRawEvent(event);
+  const explicitToolName = typeof rawObj?.toolName === 'string' ? rawObj.toolName : undefined;
+  const toolName = explicitToolName || toolNameFromTitle(event.title) || 'Tool';
+  const toolUseId = typeof rawObj?.toolUseId === 'string' ? rawObj.toolUseId : undefined;
+
+  if (event.kind === 'tool_use') {
+    const inputObj = rawObj?.input && typeof rawObj.input === 'object' && !Array.isArray(rawObj.input)
+      ? rawObj.input as Record<string, unknown>
+      : rawObj ?? {};
+
+    return {
+      toolName,
+      toolUseId,
+      status: event.status === 'error' ? 'error' : 'running',
+      params: Object.entries(inputObj).slice(0, 6).map(([key, value]) => ({ key, value: formatToolParamValue(value) })),
+    };
+  }
+
+  const output = [
+    typeof rawObj?.contentText === 'string' ? rawObj.contentText : undefined,
+    typeof rawObj?.stdout === 'string' ? rawObj.stdout : undefined,
+    typeof rawObj?.stderr === 'string' ? rawObj.stderr : undefined,
+    event.summary,
+  ].find(v => Boolean(v && v.trim()));
+
+  return {
+    toolName,
+    toolUseId,
+    status: event.status === 'error' ? 'error' : 'completed',
+    params: [],
+    output,
+  };
+}
+
 async function copyText(text: string) {
   if (!text) return;
   try {
@@ -107,7 +185,7 @@ async function copyText(text: string) {
 export function OutputPanel() {
   const [isResizing, setIsResizing] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<FilterMode>('all');
+  const [filter, setFilter] = useState<FilterMode>('assistant');
   const [expandedRaw, setExpandedRaw] = useState<Set<string>>(new Set());
 
   const selectedNodeId = useFlowStore(s => s.selectedNodeId);
@@ -294,14 +372,14 @@ export function OutputPanel() {
 
           <div className="output-actions-row">
             <div className="output-filters">
-              {(['all', 'assistant', 'tools', 'system', 'errors'] as FilterMode[]).map(mode => (
+              {FILTER_OPTIONS.map(({ mode, label }) => (
                 <button
                   key={mode}
                   type="button"
                   className={['output-filter-chip', filter === mode ? 'is-active' : ''].join(' ').trim()}
                   onClick={() => setFilter(mode)}
                 >
-                  {mode}
+                  {label}
                 </button>
               ))}
             </div>
@@ -340,6 +418,14 @@ export function OutputPanel() {
                 const canExpandRaw = Boolean(event.raw);
                 const expanded = expandedRaw.has(event.id);
                 const metaBadges = buildEventMetaBadges(event, label);
+                const toolDetails = getToolEventDetails(event);
+                const ToolIcon = toolDetails
+                  ? toolDetails.status === 'running'
+                    ? LoaderCircle
+                    : toolDetails.status === 'error'
+                      ? XCircle
+                      : CheckCircle2
+                  : null;
 
                 return (
                   <article key={event.id} className={['output-event', eventClassName(event)].join(' ').trim()}>
@@ -369,7 +455,34 @@ export function OutputPanel() {
                         ))}
                       </div>
                     )}
-                    <p className="output-event-summary">{event.summary}</p>
+                    {toolDetails ? (
+                      <div className={['output-tool-event', `is-${toolDetails.status}`].join(' ')}>
+                        <div className="output-tool-event-header">
+                          <span className={['output-tool-icon', `is-${toolDetails.status}`].join(' ')}>
+                            {ToolIcon && <ToolIcon className={toolDetails.status === 'running' ? 'is-spinning' : ''} />}
+                          </span>
+                          <span className="output-tool-name">{toolDetails.toolName}</span>
+                          {toolDetails.toolUseId && (
+                            <span className="output-tool-id">{toolDetails.toolUseId.slice(0, 12)}</span>
+                          )}
+                        </div>
+                        {toolDetails.params.length > 0 && (
+                          <div className="output-tool-params">
+                            {toolDetails.params.map(({ key, value }) => (
+                              <span key={`${event.id}-${key}-${value}`} className="output-tool-param">
+                                <strong>{key}</strong>
+                                <span>{value}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {toolDetails.output && (
+                          <pre className="output-tool-output">{toolDetails.output}</pre>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="output-event-summary">{event.summary}</p>
+                    )}
                     {expanded && event.raw && (
                       <pre className="output-event-raw">{prettyRaw(event.raw)}</pre>
                     )}

@@ -457,6 +457,9 @@ async function executeNode(
         });
         break;
       case 'completed':
+        if (data.nodeType === 'claude-code' && (data as ClaudeCodeNodeData).outputFormat === 'stream-json') {
+          parseStreamChunk(nodeId, '\n', set, get);
+        }
         set((s) => {
           const next = new Map(s.activeProcessIds);
           next.delete(nodeId);
@@ -701,7 +704,7 @@ function tryParseJson(text: string): Record<string, unknown> | undefined {
 
 function parseStreamChunk(nodeId: string, chunk: string, set: SetFn, get: GetFn) {
   const parserState = get().nodeParsers.get(nodeId) ?? createClaudeStreamParserState();
-  const parsedChunk = parseClaudeStreamChunk(parserState, `${chunk}\n`);
+  const parsedChunk = parseClaudeStreamChunk(parserState, chunk);
 
   set((s) => {
     const next = new Map(s.nodeParsers);
@@ -720,7 +723,7 @@ function parseStreamChunk(nodeId: string, chunk: string, set: SetFn, get: GetFn)
   }
 
   for (const message of parsedChunk.messages) {
-    handleParsedStreamMessage(nodeId, message, set);
+    handleParsedStreamMessage(nodeId, message, set, get);
   }
 }
 
@@ -728,6 +731,7 @@ function handleParsedStreamMessage(
   nodeId: string,
   message: ParsedClaudeStreamMessage,
   set: SetFn,
+  get: GetFn,
 ) {
   const type = message.type;
   const level = type === 'result' && message.resultMeta?.isError ? 'error' : 'info';
@@ -736,7 +740,7 @@ function handleParsedStreamMessage(
   appendNodeLogEvent(set, nodeId, {
     kind,
     level,
-    title: streamTypeToTitle(type, message.subtype),
+    title: streamTypeToTitle(type, message.subtype, message.streamEventType),
     summary: message.summary,
     raw: message.raw,
     status: type === 'result'
@@ -760,7 +764,7 @@ function handleParsedStreamMessage(
   }
 
   for (const toolResult of message.toolResults) {
-    trackToolResult(nodeId, toolResult.toolUseId, toolResult.isError, set);
+    trackToolResult(nodeId, toolResult, set, get);
   }
 
   if (message.resultMeta) {
@@ -775,19 +779,29 @@ function handleParsedStreamMessage(
 function streamTypeToLogKind(type: string): AgentLogEvent['kind'] {
   if (type === 'assistant') return 'assistant';
   if (type === 'system') return 'system';
+  if (type === 'stream_event') return 'stream';
   if (type === 'user') return 'user';
   if (type === 'result') return 'result';
   if (type === 'tool_result') return 'tool_result';
   return 'stdout';
 }
 
-function streamTypeToTitle(type: string, subtype?: string): string {
+function streamTypeToTitle(type: string, subtype?: string, streamEventType?: string): string {
   if (type === 'assistant') return 'Assistant';
   if (type === 'system') return subtype ? `System ${subtype}` : 'System';
+  if (type === 'stream_event') return streamEventType ? `Stream ${streamEventType}` : 'Stream event';
   if (type === 'user') return 'User';
   if (type === 'result') return subtype ? `Result ${subtype}` : 'Result';
   if (type === 'tool_result') return 'Tool result';
   return `Event: ${type}`;
+}
+
+function formatToolInputValue(value: unknown): string {
+  if (typeof value === 'string') return value.length > 80 ? `${value.slice(0, 77)}...` : value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return `[${value.length} items]`;
+  if (value && typeof value === 'object') return '{...}';
+  return 'null';
 }
 
 function trackToolStart(
@@ -797,12 +811,23 @@ function trackToolStart(
   input: Record<string, unknown> | undefined,
   set: SetFn,
 ) {
+  const inputEntries = input ? Object.entries(input).slice(0, 3) : [];
+  const summary = inputEntries.length > 0
+    ? inputEntries
+        .map(([key, value]) => `${key}=${formatToolInputValue(value)}`)
+        .join(' · ')
+    : `toolUseId=${toolUseId}`;
+
   appendNodeLogEvent(set, nodeId, {
     kind: 'tool_use',
     level: 'info',
     title: `Tool start: ${toolName}`,
-    summary: `toolUseId=${toolUseId}`,
-    raw: input ? JSON.stringify(input) : undefined,
+    summary,
+    raw: JSON.stringify({
+      toolUseId,
+      toolName,
+      input: input ?? {},
+    }),
     status: 'running',
   });
 
@@ -866,12 +891,30 @@ function trackToolStart(
   });
 }
 
-function trackToolResult(nodeId: string, toolUseId: string, isError: boolean, set: SetFn) {
+function trackToolResult(
+  nodeId: string,
+  toolResult: ParsedClaudeStreamMessage['toolResults'][number],
+  set: SetFn,
+  get: GetFn,
+) {
+  const { toolUseId, isError } = toolResult;
+  const activeTool = get().nodeToolActivity.get(nodeId)?.find(item => item.toolUseId === toolUseId);
+  const toolName = toolResult.toolName ?? activeTool?.toolName;
+  const fallbackSummary = `${toolName ?? toolUseId} ${isError ? 'failed' : 'completed'}`;
+
   appendNodeLogEvent(set, nodeId, {
     kind: 'tool_result',
     level: isError ? 'error' : 'info',
     title: 'Tool result',
-    summary: `${toolUseId} ${isError ? 'failed' : 'completed'}`,
+    summary: toolResult.contentText || fallbackSummary,
+    raw: JSON.stringify({
+      toolUseId,
+      isError,
+      stdout: toolResult.stdout,
+      stderr: toolResult.stderr,
+      contentText: toolResult.contentText,
+      toolName,
+    }),
     status: isError ? 'error' : 'completed',
   });
 

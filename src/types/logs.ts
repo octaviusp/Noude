@@ -1,6 +1,7 @@
 export type AgentLogKind =
   | 'lifecycle'
   | 'system'
+  | 'stream'
   | 'assistant'
   | 'user'
   | 'tool_use'
@@ -49,11 +50,16 @@ export interface ParsedToolUse {
 export interface ParsedToolResult {
   toolUseId: string;
   isError: boolean;
+  contentText?: string;
+  stdout?: string;
+  stderr?: string;
+  toolName?: string;
 }
 
 export interface ParsedClaudeStreamMessage {
   type: string;
   subtype?: string;
+  streamEventType?: string;
   raw: string;
   summary: string;
   assistantText?: string;

@@ -68,12 +68,38 @@ function extractToolResults(content: Record<string, unknown>[]): ParsedToolResul
     if (block.type !== 'tool_result') continue;
     const toolUseId = asString(block.tool_use_id);
     if (!toolUseId) continue;
+    const contentText = extractToolResultContent(block.content);
     results.push({
       toolUseId,
       isError: block.is_error === true,
+      contentText: contentText || undefined,
     });
   }
   return results;
+}
+
+function extractToolResultContent(content: unknown): string {
+  if (typeof content === 'string') return content.trim();
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const block of content) {
+      const obj = asRecord(block);
+      if (!obj) continue;
+      if (obj.type === 'text') {
+        const text = asString(obj.text);
+        if (text) parts.push(text);
+      }
+    }
+    return parts.join('\n').trim();
+  }
+  if (content && typeof content === 'object') {
+    try {
+      return JSON.stringify(content);
+    } catch {
+      return '';
+    }
+  }
+  return '';
 }
 
 export function createClaudeStreamParserState(): ClaudeStreamParserState {
@@ -107,7 +133,11 @@ function summarizeMessage(type: string, text: string, tools: ParsedToolUse[], re
     return 'Assistant message';
   }
   if (type === 'user') {
-    if (results.length > 0) return `Tool returned ${results.length} result${results.length > 1 ? 's' : ''}`;
+    if (results.length > 0) {
+      const contentText = results.map(r => r.contentText).filter((v): v is string => Boolean(v)).join('\n');
+      if (contentText) return contentText;
+      return `Tool returned ${results.length} result${results.length > 1 ? 's' : ''}`;
+    }
     return text ? truncate(text) : 'User message';
   }
   if (type === 'system') {
@@ -142,8 +172,66 @@ function summarizeSystemMessage(obj: Record<string, unknown>): string {
   return 'System event';
 }
 
+function summarizeStreamEvent(eventType: string, event: Record<string, unknown>): string {
+  if (eventType === 'message_start') return 'Partial stream message started';
+  if (eventType === 'message_stop') return 'Partial stream message finished';
+  if (eventType === 'message_delta') return 'Partial stream message updated';
+  if (eventType === 'content_block_start') {
+    const block = asRecord(event.content_block);
+    const blockType = asString(block?.type);
+    if (blockType) return `Content block started (${blockType})`;
+    return 'Content block started';
+  }
+  if (eventType === 'content_block_stop') return 'Content block finished';
+  if (eventType === 'content_block_delta') {
+    const delta = asRecord(event.delta);
+    const deltaType = asString(delta?.type);
+    if (deltaType === 'text_delta') {
+      const text = asString(delta?.text);
+      return text ? `Text delta: ${truncate(text, 90)}` : 'Text delta';
+    }
+    if (deltaType) return `Content delta (${deltaType})`;
+    return 'Content delta';
+  }
+  return `Stream event: ${eventType}`;
+}
+
+function parseStreamEventMessage(rawLine: string, obj: Record<string, unknown>): ParsedClaudeStreamMessage {
+  const event = asRecord(obj.event);
+  const eventType = asString(event?.type) ?? 'unknown';
+  const summary = summarizeStreamEvent(eventType, event ?? {});
+
+  const toolUses: ParsedToolUse[] = [];
+  const block = asRecord(event?.content_block);
+  if (eventType === 'content_block_start' && asString(block?.type) === 'tool_use') {
+    const toolUseId = asString(block?.id);
+    const toolName = asString(block?.name);
+    if (toolUseId && toolName) {
+      toolUses.push({
+        toolUseId,
+        toolName,
+        input: asRecord(block?.input),
+      });
+    }
+  }
+
+  return {
+    type: 'stream_event',
+    raw: rawLine,
+    summary,
+    assistantTurn: false,
+    toolUses,
+    toolResults: [],
+    streamEventType: eventType,
+  };
+}
+
 function parseMessageObject(rawLine: string, obj: Record<string, unknown>): ParsedClaudeStreamMessage {
   const type = asString(obj.type) ?? 'unknown';
+  if (type === 'stream_event') {
+    return parseStreamEventMessage(rawLine, obj);
+  }
+
   const message = asRecord(obj.message);
   const content = getContentBlocks(message);
 
@@ -155,8 +243,17 @@ function parseMessageObject(rawLine: string, obj: Record<string, unknown>): Pars
   const topLevelToolResults: ParsedToolResult[] = type === 'tool_result' && asString(obj.tool_use_id)
     ? [{ toolUseId: asString(obj.tool_use_id) as string, isError: obj.is_error === true }]
     : [];
+  const topLevelToolUseResult = asRecord(obj.tool_use_result);
 
-  const toolResults = [...contentToolResults, ...topLevelToolResults];
+  const toolResults = [...contentToolResults, ...topLevelToolResults].map((result, index, arr) => {
+    if (!topLevelToolUseResult || arr.length > 1 || index > 0) return result;
+    return {
+      ...result,
+      stdout: asString(topLevelToolUseResult.stdout),
+      stderr: asString(topLevelToolUseResult.stderr),
+      contentText: result.contentText ?? asString(topLevelToolUseResult.stdout),
+    };
+  });
   const hasPartialSubtype = (asString(obj.subtype) ?? '').toLowerCase().includes('partial');
   const systemSummary = type === 'system' ? summarizeSystemMessage(obj) : '';
   const messageSummary = summarizeMessage(type, resultText ?? assistantText, toolUses, toolResults);
