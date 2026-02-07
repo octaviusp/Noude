@@ -70,6 +70,8 @@ pub async fn invoke_bash(
 
         let mut stdout_reader = tokio::io::BufReader::new(stdout).lines();
         let mut stderr_reader = tokio::io::BufReader::new(stderr).lines();
+        let mut stdout_done = false;
+        let mut stderr_done = false;
 
         let timeout_fut = async {
             if timeout_ms > 0 {
@@ -82,8 +84,12 @@ pub async fn invoke_bash(
         tokio::pin!(timeout_fut);
 
         loop {
+            if stdout_done && stderr_done {
+                break;
+            }
+
             tokio::select! {
-                line = stdout_reader.next_line() => {
+                line = stdout_reader.next_line(), if !stdout_done => {
                     match line {
                         Ok(Some(l)) => {
                             stdout_buf.push_str(&l);
@@ -93,7 +99,9 @@ pub async fn invoke_bash(
                                 chunk: l,
                             });
                         }
-                        Ok(None) => break,
+                        Ok(None) => {
+                            stdout_done = true;
+                        }
                         Err(e) => {
                             let _ = on_event_clone.send(ProcessEvent::Error {
                                 process_id: pid_clone.clone(),
@@ -103,7 +111,7 @@ pub async fn invoke_bash(
                         }
                     }
                 }
-                line = stderr_reader.next_line() => {
+                line = stderr_reader.next_line(), if !stderr_done => {
                     match line {
                         Ok(Some(l)) => {
                             stderr_buf.push_str(&l);
@@ -113,8 +121,16 @@ pub async fn invoke_bash(
                                 chunk: l,
                             });
                         }
-                        Ok(None) => {}
-                        Err(_) => {}
+                        Ok(None) => {
+                            stderr_done = true;
+                        }
+                        Err(e) => {
+                            stderr_done = true;
+                            let _ = on_event_clone.send(ProcessEvent::Error {
+                                process_id: pid_clone.clone(),
+                                message: format!("stderr read error: {}", e),
+                            });
+                        }
                     }
                 }
                 _ = cancel_rx.changed() => {
