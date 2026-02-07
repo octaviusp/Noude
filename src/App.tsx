@@ -236,15 +236,15 @@ export default function App() {
             >
               <Background
                 variant={BackgroundVariant.Dots}
-                gap={24}
-                size={1.4}
-                color="rgba(255, 255, 255, 0.08)"
+                gap={28}
+                size={1.1}
+                color="rgba(255, 255, 255, 0.045)"
               />
               <Controls />
               {nodes.length > 1 && (
                 <MiniMap
-                  nodeColor={() => '#6678ff'}
-                  maskColor="rgba(14, 14, 19, 0.75)"
+                  nodeColor={() => 'rgba(91, 111, 255, 0.5)'}
+                  maskColor="rgba(14, 14, 19, 0.82)"
                 />
               )}
             </ReactFlow>

@@ -21,14 +21,13 @@
 }
 
 .noude-node:hover {
-  transform: translateY(-1px) scale(1.002);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.44);
 }
 
 .noude-node.selected {
-  border-color: rgba(91, 111, 255, 0.56);
-  box-shadow: 0 0 0 1px rgba(91, 111, 255, 0.32), 0 18px 34px rgba(0, 0, 0, 0.44);
+  border-color: rgba(91, 111, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(91, 111, 255, 0.15), 0 18px 34px rgba(0, 0, 0, 0.44);
 }
 
 .noude-node.is-disabled {
@@ -48,17 +47,18 @@
 .noude-node-header::before {
   content: '';
   position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 1px;
+  inset: 6px auto 6px 0;
+  width: 2.5px;
+  height: auto;
+  border-radius: 0 3px 3px 0;
 }
 
 .noude-node.type-claude-code .noude-node-header::before {
-  background: linear-gradient(90deg, var(--accent-red), rgba(255, 71, 87, 0.2));
+  background: linear-gradient(180deg, rgba(255, 130, 140, 0.85), rgba(255, 71, 87, 0.5));
 }
 
 .noude-node.type-bash .noude-node-header::before {
-  background: linear-gradient(90deg, var(--accent-green), rgba(127, 176, 105, 0.25));
+  background: linear-gradient(180deg, rgba(152, 210, 130, 0.85), rgba(127, 176, 105, 0.5));
 }
 
 .noude-node-icon {
@@ -74,13 +74,13 @@
 }
 
 .noude-node.type-claude-code .noude-node-icon {
-  background: rgba(255, 71, 87, 0.12);
-  color: var(--accent-red);
+  background: rgba(255, 130, 140, 0.1);
+  color: rgba(255, 130, 140, 0.9);
 }
 
 .noude-node.type-bash .noude-node-icon {
-  background: rgba(127, 176, 105, 0.16);
-  color: var(--accent-green);
+  background: rgba(152, 210, 130, 0.1);
+  color: rgba(152, 210, 130, 0.9);
 }
 
 .noude-node-label {
@@ -159,9 +159,9 @@
 }
 
 .noude-node-settings-btn {
-  width: 20px;
-  height: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  width: 18px;
+  height: 18px;
+  border: none;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-faint);
@@ -169,19 +169,20 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
+  opacity: 0.3;
   transform: translateY(1px);
   transition: opacity 0.16s ease, color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 
 .noude-node:hover .noude-node-settings-btn,
 .noude-node.selected .noude-node-settings-btn {
-  opacity: 1;
+  opacity: 0.7;
 }
 
 .noude-node-settings-btn:hover {
+  opacity: 1;
   color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.09);
 }
 
@@ -217,16 +218,22 @@
 }
 
 .noude-node-summary {
-  font-size: 9.5px;
+  font-size: 10px;
   color: var(--text-muted);
   font-family: var(--font-mono);
-  line-height: 1.45;
+  line-height: 1.5;
   max-height: 32px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.noude-node-summary.is-empty {
+  font-style: italic;
+  font-family: var(--font-sans);
+  color: var(--text-faint);
 }
 
 .noude-node-debug-card {
@@ -305,25 +312,25 @@
 .noude-node-badges {
   display: flex;
   gap: 5px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .noude-node-badge {
-  font-size: 8.6px;
+  font-size: 9.5px;
   padding: 2px 7px;
-  border-radius: 999px;
+  border-radius: 5px;
   background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(255, 255, 255, 0.11);
   font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .noude-node-badge.model {
-  color: rgba(255, 121, 130, 0.94);
-  border-color: rgba(255, 71, 87, 0.26);
-  background: rgba(255, 71, 87, 0.08);
+  color: var(--text-secondary);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .noude-node-badge.shell {
@@ -333,21 +340,21 @@
 }
 
 .noude-node-badge.autonomous {
-  color: rgba(154, 169, 255, 0.96);
-  border-color: rgba(91, 111, 255, 0.3);
-  background: rgba(91, 111, 255, 0.1);
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .noude-node-badge.debug {
-  color: rgba(178, 190, 255, 0.98);
-  border-color: rgba(162, 178, 255, 0.38);
-  background: rgba(91, 111, 255, 0.13);
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .noude-node-duration,
 .noude-node-cost,
 .noude-node-live-metrics {
-  font-size: 8.8px;
+  font-size: 9px;
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
@@ -374,14 +381,20 @@
 }
 
 .noude-handle {
-  width: 13px !important;
-  height: 13px !important;
+  width: 9px !important;
+  height: 9px !important;
   position: relative !important;
   background: var(--bg-secondary) !important;
-  border: 2px solid rgba(255, 255, 255, 0.48) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: 999px !important;
-  transition: all 0.16s ease !important;
+  transition: all 0.16s ease, opacity 0.16s ease !important;
   box-shadow: 0 0 0 1px rgba(9, 10, 16, 0.54) !important;
+  opacity: 0.5;
+}
+
+.noude-node:hover .noude-handle,
+.noude-node.selected .noude-handle {
+  opacity: 1 !important;
 }
 
 .noude-handle::before {
@@ -392,10 +405,11 @@
 }
 
 .noude-handle:hover {
-  background: var(--accent-blue) !important;
-  border-color: var(--accent-blue) !important;
-  box-shadow: 0 0 10px rgba(91, 111, 255, 0.55) !important;
-  transform: scale(1.1) !important;
+  width: 11px !important;
+  height: 11px !important;
+  border-color: rgba(130, 145, 255, 0.7) !important;
+  background: rgba(130, 145, 255, 0.2) !important;
+  box-shadow: none !important;
 }
 
 .noude-handle.connectingto,
@@ -405,30 +419,34 @@
 }
 
 .noude-edge-path {
-  stroke: rgba(255, 255, 255, 0.2);
-  stroke-width: 2;
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 1.5;
   fill: none;
   transition: stroke 0.3s ease;
 }
 
 .noude-edge-path.running {
-  stroke: var(--accent-blue);
-  stroke-width: 2.5;
+  stroke: rgba(130, 145, 255, 0.7);
+  stroke-width: 2;
   stroke-dasharray: 7 5;
-  animation: edgeFlow 0.6s linear infinite;
+  animation: edgeFlow 0.8s linear infinite;
 }
 
 .noude-edge-path.success {
   stroke: var(--status-success);
+  stroke-width: 1.5;
+  opacity: 0.5;
 }
 
 .noude-edge-path.error {
   stroke: var(--status-error);
+  stroke-width: 1.5;
+  opacity: 0.5;
 }
 
 .noude-edge-particle {
   fill: var(--accent-blue);
-  filter: drop-shadow(0 0 4px rgba(91, 111, 255, 0.7));
+  filter: drop-shadow(0 0 3px rgba(91, 111, 255, 0.5));
 }
 
 .noude-node-streaming {
@@ -451,7 +469,7 @@
 
 .noude-node.executing {
   border-color: rgba(91, 111, 255, 0.4);
-  animation: executingBreath 2.2s ease-in-out infinite;
+  animation: executingBreath 2.8s ease-in-out infinite;
 }
 
 .sub-agent-node {
@@ -537,7 +555,7 @@
     box-shadow: 0 0 0 1px rgba(91, 111, 255, 0.24), 0 0 14px rgba(91, 111, 255, 0.14);
   }
   50% {
-    box-shadow: 0 0 0 2px rgba(91, 111, 255, 0.16), 0 0 20px rgba(91, 111, 255, 0.2);
+    box-shadow: 0 0 0 2px rgba(91, 111, 255, 0.12), 0 0 16px rgba(91, 111, 255, 0.14);
   }
 }
 

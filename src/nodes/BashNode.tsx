@@ -10,9 +10,7 @@ export function BashNode({ id, data, selected }: NodeProps) {
       <div className="noude-node-badges">
         <span className="noude-node-badge shell">{d.shell}</span>
       </div>
-      <div className="noude-node-summary">
-        {d.script.trim() || 'No script configured.'}
-      </div>
+      <div className={['noude-node-summary', !d.script.trim() ? 'is-empty' : ''].join(' ').trim()}>{d.script.trim() || 'Click to add script...'}</div>
     </BaseNode>
   );
 }

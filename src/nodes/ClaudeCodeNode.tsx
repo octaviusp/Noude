@@ -34,13 +34,13 @@ export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
       <div className="noude-node-badges">
         <span className="noude-node-badge model">{formatModelLabel(d.model)}</span>
         {d.permissionMode === 'bypassPermissions' && (
-          <span className="noude-node-badge autonomous">AUTO</span>
+          <span className="noude-node-badge autonomous">Auto</span>
         )}
         {d.allowedTools.length > 0 && (
           <span className="noude-node-badge">{toolsLabel}</span>
         )}
         {d.outputFormat === 'stream-json' && (
-          <span className="noude-node-badge debug">DEBUG</span>
+          <span className="noude-node-badge debug">Stream</span>
         )}
       </div>
       {isActive && liveMetrics && (
@@ -53,7 +53,7 @@ export function ClaudeCodeNode({ id, data, selected }: NodeProps) {
           )}
         </div>
       )}
-      <div className="noude-node-summary">{prompt || 'No prompt configured.'}</div>
+      <div className={['noude-node-summary', !prompt ? 'is-empty' : ''].join(' ').trim()}>{prompt || 'Click to add prompt...'}</div>
       {output?.meta.costUsd != null && (
         <div className="noude-node-cost">${output.meta.costUsd.toFixed(3)}</div>
       )}

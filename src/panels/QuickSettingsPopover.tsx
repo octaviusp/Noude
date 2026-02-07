@@ -1,3 +1,4 @@
+import { Sparkles, Terminal, ChevronRight } from 'lucide-react';
 import type { AnyNodeData, BashNodeData, ClaudeCodeNodeData } from '../types';
 import { useFlowStore } from '../store/flowStore';
 import { useUiStore } from '../store/uiStore';
@@ -26,7 +27,7 @@ function ClaudeQuickSettings({
   onChange: (partial: Partial<AnyNodeData>) => void;
 }) {
   return (
-    <>
+    <div className="quick-settings-section">
       <label className="quick-settings-field">
         <span className="quick-settings-label">Prompt</span>
         <Textarea
@@ -54,7 +55,7 @@ function ClaudeQuickSettings({
           <option value="text">Text</option>
         </Select>
       </label>
-    </>
+    </div>
   );
 }
 
@@ -66,7 +67,7 @@ function BashQuickSettings({
   onChange: (partial: Partial<AnyNodeData>) => void;
 }) {
   return (
-    <>
+    <div className="quick-settings-section">
       <label className="quick-settings-field">
         <span className="quick-settings-label">Command</span>
         <Textarea
@@ -87,7 +88,7 @@ function BashQuickSettings({
           <option value="zsh">zsh</option>
         </Select>
       </label>
-    </>
+    </div>
   );
 }
 
@@ -122,13 +123,16 @@ export function QuickSettingsPopover() {
         aria-label="Quick node settings"
       >
         <header className="quick-settings-header">
-          <div>
-            <h3 className="quick-settings-title">Quick Settings</h3>
-            <p className="quick-settings-subtitle">{data.nodeType.replace('-', ' ')} node</p>
+          <div className="quick-settings-header-left">
+            <div className={`quick-settings-header-icon ${data.nodeType === 'claude-code' ? 'is-claude' : 'is-bash'}`}>
+              {data.nodeType === 'claude-code' ? <Sparkles className="w-3.5 h-3.5" /> : <Terminal className="w-3.5 h-3.5" />}
+            </div>
+            <span className="quick-settings-header-label">{data.label}</span>
           </div>
           <Button
             variant="ghost"
             size="sm"
+            className="quick-settings-advanced-btn"
             onClick={() => {
               setQuickSettings(null);
               setNodeSettingsSheetNodeId(node.id);
@@ -136,17 +140,17 @@ export function QuickSettingsPopover() {
             }}
           >
             Advanced
+            <ChevronRight className="w-3 h-3" />
           </Button>
         </header>
 
         <div className="quick-settings-body">
-          <label className="quick-settings-field">
-            <span className="quick-settings-label">Label</span>
-            <Input
-              value={data.label}
-              onChange={(event) => onChange({ label: event.target.value })}
-            />
-          </label>
+          <div className="quick-settings-section">
+            <label className="quick-settings-field">
+              <span className="quick-settings-label">Label</span>
+              <Input value={data.label} onChange={(event) => onChange({ label: event.target.value })} />
+            </label>
+          </div>
 
           {data.nodeType === 'claude-code' && (
             <ClaudeQuickSettings data={data} onChange={onChange} />
@@ -155,12 +159,11 @@ export function QuickSettingsPopover() {
             <BashQuickSettings data={data} onChange={onChange} />
           )}
 
-          <div className="quick-settings-switch">
-            <span className="quick-settings-label">Enabled</span>
-            <Switch
-              checked={data.enabled}
-              onCheckedChange={(value) => onChange({ enabled: value })}
-            />
+          <div className="quick-settings-section">
+            <div className="quick-settings-switch">
+              <span className="quick-settings-label">Enabled</span>
+              <Switch checked={data.enabled} onCheckedChange={(value) => onChange({ enabled: value })} />
+            </div>
           </div>
         </div>
       </section>

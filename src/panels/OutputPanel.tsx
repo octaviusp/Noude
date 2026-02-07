@@ -355,6 +355,9 @@ export function OutputPanel() {
           aria-expanded={!collapsed}
         >
           <span className="output-title">Output</span>
+          {collapsed && flowStatus === 'running' && (
+            <span className="output-running-dot" />
+          )}
           {label && <span className="output-node-label">{label}</span>}
           {liveMetrics && (
             <span className="output-metric">Turn {liveMetrics.turns}</span>
