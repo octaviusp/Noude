@@ -1,4 +1,4 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
 import type { AnyNodeData } from '../types';
 import { useExecutionStore } from '../store/executionStore';
 import { useFlowStore } from '../store/flowStore';
@@ -50,17 +50,4 @@ export function BaseNode({ id, data, selected, icon, children }: BaseNodeProps) 
       <Handle type="source" position={Position.Right} id="out" className="noude-handle" />
     </div>
   );
-}
-
-export function createNodeComponent(
-  icon: string,
-  renderBody: (data: AnyNodeData) => React.ReactNode
-) {
-  return function NodeComponent({ id, data, selected }: NodeProps) {
-    return (
-      <BaseNode id={id} data={data as AnyNodeData} selected={selected} icon={icon}>
-        {renderBody(data as AnyNodeData)}
-      </BaseNode>
-    );
-  };
 }
